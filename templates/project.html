@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block description %}{{ project.tagline }}{% endblock %}
+
+{% block content %}
+<section class="page-head shell">
+  <p class="crumb" aria-hidden="true"><a href="/">~</a> / <a href="/projects/">projects</a> / {{ project.slug }}</p>
+  <h1 class="page-title">{{ project.title }}</h1>
+  <p class="page-sub">{{ project.tagline }}</p>
+  <dl class="spec-row">
+    <div><dt>YEAR</dt><dd>{{ project.year }}</dd></div>
+    {% if project.stack %}<div><dt>STACK</dt><dd>{{ project.stack | join(" · ") | lower }}</dd></div>{% endif %}
+    <div><dt>STATUS</dt><dd class="ok">{{ project.status | default("active") | upper }}</dd></div>
+    {% if project.repo %}<div><dt>SOURCE</dt><dd><a href="{{ project.repo }}" rel="noopener noreferrer" target="_blank">REPOSITORY ↗</a></dd></div>{% endif %}
+  </dl>
+</section>
+
+<div class="shell">
+  <article class="prose">
+    {{ project.html | safe }}
+  </article>
+</div>
+
+<nav class="pager shell" aria-label="project navigation">
+  {% if prev %}<a class="pager-prev" href="{{ prev.url }}"><span aria-hidden="true">←</span> {{ prev.title }}</a>{% else %}<span></span>{% endif %}
+  {% if next %}<a class="pager-next" href="{{ next.url }}">{{ next.title }} <span aria-hidden="true">→</span></a>{% endif %}
+</nav>
+{% endblock %}

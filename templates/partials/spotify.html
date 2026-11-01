@@ -1,0 +1,9 @@
+{% if site.spotify.enabled and site.spotify.worker %}
+<section class="spotify" aria-label="now playing on spotify">
+  <div class="now" data-now="{{ site.spotify.worker }}">
+    <p class="now__label"><span class="now__state">spotify // syncing</span></p>
+    <pre class="now__pre" aria-label="playing on spotify">connecting to worker...</pre>
+    <span class="now__announcement" aria-live="polite" aria-atomic="true"></span>
+  </div>
+</section>
+{% endif %}

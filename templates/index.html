@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<section class="hero shell">
+  <figure class="hero-art" role="img"
+          aria-label="ASCII portrait of Shanks of One Piece: hair over one eye, three scars, hand gripping his sword.">
+    {% include "partials/shanks-ascii.html" %}
+    {% include "partials/shanks-ascii-mobile.html" %}
+    <figcaption class="art-meta" aria-hidden="true">// shanks.asc · utf-8</figcaption>
+  </figure>
+
+  <div class="hero-intro">
+    <ul class="social-links" aria-label="elsewhere">
+      <li><a href="{{ site.social.github }}">GitHub</a></li>
+      <li><a href="{{ site.social.x }}">X</a></li>
+      <li><a href="{{ site.social.linkedin }}">LinkedIn</a></li>
+      <li><a href="mailto:{{ site.email }}">Email</a></li>
+    </ul>
+    <h1 class="hero-hello">{{ site.hero.hello | safe }}</h1>
+    <p class="hero-copy">{{ site.hero.machinery | safe }}</p>
+    <p class="hero-copy">{{ site.hero.enjoy | safe }}</p>
+  </div>
+
+  {% include "partials/spotify.html" %}
+</section>
+
+<section class="section shell">
+  <div class="section-row">
+    <h2 class="section-title">Selected Projects</h2>
+    <a class="view-all" href="/projects/">View all →</a>
+  </div>
+  <ul class="entry-list">
+    {% for p in featured %}
+    <li>
+      <a class="entry-link" href="{{ p.repo }}" rel="noopener noreferrer" target="_blank">
+        <span class="entry-title">{{ p.title }}<span class="entry-ext" aria-hidden="true"> ↗</span></span>
+        <span class="entry-desc">{{ p.tagline }}</span>
+      </a>
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+
+<section class="section shell">
+  <div class="section-row">
+    <h2 class="section-title">Writing</h2>
+    <a class="view-all" href="/writing/">View all →</a>
+  </div>
+  <ul class="entry-list">
+    {% for post in recent %}
+    <li>
+      <a class="entry-link" href="{{ post.url }}">
+        <span class="entry-title">{{ post.title }}</span>
+        <span class="entry-desc">{{ post.date | fmt_date }} · {{ post.category | default("note") }}</span>
+      </a>
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+
+{% endblock %}

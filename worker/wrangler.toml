@@ -1,0 +1,12 @@
+name = "pritam-spotify"
+main = "src/worker.js"
+compatibility_date = "2025-01-01"
+
+# Secrets (set with `npx wrangler secret put <NAME>` — never commit them):
+#   SPOTIFY_CLIENT_ID
+#   SPOTIFY_CLIENT_SECRET
+#   SPOTIFY_REFRESH_TOKEN
+#   ACCESS_KEY       (optional shared-key gate)
+# ALLOWED_ORIGIN is a variable configured below, not a secret.
+[vars]
+ALLOWED_ORIGIN = "http://localhost:8000,https://pritamravi.com"

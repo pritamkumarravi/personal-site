@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="page-head shell">
+  <p class="crumb" aria-hidden="true"><a href="/">~</a> / projects</p>
+  <h1 class="page-title">Projects</h1>
+  <p class="page-sub">Reimplementations, benchmarks and tools — built to understand systems from the inside out.</p>
+</section>
+
+<section class="shell">
+  <ul class="entry-list">
+    {% for p in all_projects %}
+    <li>
+      <a class="entry-link" href="{{ p.url }}">
+        <span class="entry-title">{{ p.title }}</span>
+        <span class="entry-desc">{{ p.tagline }}</span>
+        <span class="entry-year">{{ p.year }}</span>
+      </a>
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endblock %}

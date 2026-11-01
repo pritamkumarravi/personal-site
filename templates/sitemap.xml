@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>{{ site.url }}/</loc></url>
+  {%- for u in pages %}
+  <url><loc>{{ site.url }}{{ u }}</loc></url>
+  {%- endfor %}
+  {%- for p in projects %}
+  <url><loc>{{ site.url }}{{ p.url }}</loc></url>
+  {%- endfor %}
+  {%- for post in posts %}
+  <url><loc>{{ site.url }}{{ post.url }}</loc>{% if post.date %}<lastmod>{{ post.date }}</lastmod>{% endif %}</url>
+  {%- endfor %}
+</urlset>

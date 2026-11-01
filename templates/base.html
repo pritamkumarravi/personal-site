@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  {% block title %}
+  <title>{% if page.id == "home" %}{{ site.seo_title }}{% else %}{{ page.title }} — {{ site.name }}{% endif %}</title>
+  {% endblock %}
+  <meta name="description" content="{% block description %}{{ page.description or site.description }}{% endblock %}">
+  <meta name="robots" content="{{ page.robots | default('index, follow') }}">
+  <link rel="canonical" href="{{ site.url }}{{ page.path }}">
+  <meta name="theme-color" content="#101014">
+
+  <meta property="og:type" content="{% block og_type %}website{% endblock %}">
+  <meta property="og:site_name" content="{{ site.title }}">
+  <meta property="og:title" content="{% if page.id == 'home' %}{{ site.seo_title }}{% else %}{{ page.title }} — {{ site.name }}{% endif %}">
+  <meta property="og:description" content="{% block og_description %}{{ page.description or site.description }}{% endblock %}">
+  <meta property="og:url" content="{{ site.url }}{{ page.path }}">
+  <meta property="og:image" content="{{ site.url }}/assets/branding/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="{% if page.id == 'home' %}{{ site.seo_title }}{% else %}{{ page.title }} — {{ site.name }}{% endif %}">
+  <meta name="twitter:description" content="{% block twitter_description %}{{ page.description or site.description }}{% endblock %}">
+  <meta name="twitter:image" content="{{ site.url }}/assets/branding/og-image.png">
+  {% block extra_meta %}{% endblock %}
+
+  <link rel="alternate" type="application/rss+xml" title="{{ site.title }} — RSS" href="{{ site.url }}/feed.xml">
+  <link rel="icon" href="/assets/branding/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="/assets/icons/favicon-32x32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
+  <link rel="manifest" href="/assets/icons/site.webmanifest">
+
+  <link rel="preload" href="/assets/fonts/InstrumentSerif-Regular.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/assets/fonts/IBMPlexMono-Regular.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/assets/fonts/IBMPlexMono-Medium.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/css/main.css">
+  {% block head %}{% endblock %}
+  <script>window.SITE = { spotifyEndpoint: {{ site.spotify.worker | tojson }} };</script>
+  {% if page.id == "home" and site.spotify.enabled and site.spotify.worker %}
+  {# start the now-playing request in the head so the widget paints with data #}
+  <script>
+    window.__nowController = new AbortController();
+    window.__now = fetch({{ site.spotify.worker | tojson }}, { mode: "cors", signal: window.__nowController.signal })
+      .catch(function () { return null; });
+    window.__nowTimeout = window.setTimeout(function () { window.__nowController.abort(); }, 10000);
+    window.__now.finally(function () { window.clearTimeout(window.__nowTimeout); });
+  </script>
+  {% endif %}
+  <script src="/js/main.js" defer></script>
+</head>
+<body class="pg-{{ page.id }}">
+<a class="skip-link" href="#main">skip to content</a>
+{% if page.id == "article" %}<div class="progress" aria-hidden="true"><span class="progress-bar" id="progress-bar"></span></div>{% endif %}
+
+<header class="site-header">
+  <div class="shell header-row">
+    <p class="brand">
+      <a class="wordmark" href="/">pr<span class="wordmark-l">λ</span>tam</a>
+      <span class="brand-name">{{ site.name | lower }}</span>
+    </p>
+    <nav class="site-nav" id="site-nav" aria-label="primary">
+      <ul>
+        {% for id, href in nav %}
+        <li><a href="{{ href }}"{% if page.id == id %} aria-current="page"{% endif %}>{{ id }}</a></li>
+        {% endfor %}
+        <li><a href="/feed.xml" class="nav-rss">rss</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<main id="main" class="site-main">
+{% block content %}{% endblock %}
+</main>
+
+<footer class="site-footer">
+  <div class="shell footer-row">
+    <ul class="footer-links" aria-label="elsewhere">
+      <li><a href="{{ site.social.github }}">GitHub</a></li>
+      <li><a href="{{ site.social.x }}">X</a></li>
+      <li><a href="{{ site.social.linkedin }}">LinkedIn</a></li>
+      <li><a href="mailto:{{ site.email }}">Email</a></li>
+      <li><a href="/feed.xml">RSS</a></li>
+    </ul>
+    <p class="footer-copy">© {{ now.year }} {{ site.name }}</p>
+  </div>
+</footer>
+</body>
+</html>

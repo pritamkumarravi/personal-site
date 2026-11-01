@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block description %}{{ meta.description | default(site.description) }}{% endblock %}
+
+{% block content %}
+<section class="page-head shell">
+  <p class="crumb" aria-hidden="true"><a href="/">~</a> / about</p>
+  <h1 class="page-title">{{ meta.title }}</h1>
+  {% if meta.subtitle %}<p class="page-sub">{{ meta.subtitle }}</p>{% endif %}
+</section>
+<div class="shell">
+  <article class="prose">
+    {{ body | safe }}
+  </article>
+</div>
+{% endblock %}

@@ -1,0 +1,41 @@
+# Site identity & homepage copy — edit this file to update the site.
+
+title: prλtam
+name: Pritam Ravi
+url: https://pritamravi.com        # no trailing slash
+tagline: Building systems. Exploring creative intelligence.
+
+# SEO: homepage title/description are composed from these (spec §14).
+seo_title: Pritam Ravi — ML Systems & Inference Engineering
+home_description: >-
+  Pritam Ravi explores inference engineering, ML systems, GPU performance and
+  creative intelligence. Building systems and learning from first principles.
+description: >-
+  Pritam Ravi explores inference engineering, ML systems, GPU performance and
+  creative intelligence. Building systems and learning from first principles.
+
+social:
+  github: https://github.com/pritamkumarravi
+  x: https://x.com/Pritam_ai
+  linkedin: https://www.linkedin.com/in/pritam-ai/
+email: pritamkumarravi38@gmail.com
+
+# Spotify now-playing. Deploy worker/ to Cloudflare and put its URL here
+# (append ?key=… if the worker's ACCESS_KEY secret is set).
+# Leave worker blank — or enabled false — and the section stays hidden.
+spotify:
+  enabled: true
+  worker: "https://pritam-spotify.pritamkumarravi38.workers.dev/now"
+
+hero:
+  hello: >-
+    hey, I'm pritam. i'm into <strong>inference engineering</strong>,
+    <strong>ML systems</strong>, and <strong>GPU performance</strong>.
+  machinery: >-
+    mostly interested in understanding the machinery behind modern
+    intelligence: how models run, how inference systems work, and how to
+    make them <strong>faster and more efficient</strong>.
+  enjoy: >-
+    i enjoy taking <strong>complex systems apart</strong>, building
+    simplified versions from scratch, and understanding how things work
+    under the hood.

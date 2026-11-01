@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block description %}{{ post.summary }}{% endblock %}
+{% block og_type %}article{% endblock %}
+
+{% block content %}
+<div class="article-shell shell">
+  <header class="article-head">
+    <p class="crumb" aria-hidden="true"><a href="/">~</a> / <a href="/writing/">writing</a> / {{ post.slug }}</p>
+    <p class="article-meta">
+      <span class="entry-cat">{{ post.category | default("note") | lower }}</span>
+      <span class="dim">/</span>
+      <span class="entry-date">{{ post.date | fmt_date }}</span>
+      <span class="dim">/</span>
+      <span>{{ post.read_minutes }} min read</span>
+      {% if post.tags %}<span class="article-tags">{% for t in post.tags %}<span class="tag">#{{ t }}</span>{% endfor %}</span>{% endif %}
+    </p>
+    <h1 class="article-title">{{ post.title }}</h1>
+    {% if post.summary %}<p class="article-summary">{{ post.summary }}</p>{% endif %}
+  </header>
+
+  <div class="article-body">
+    {% if post.toc and post.toc | length > 60 %}
+    <aside class="toc" aria-label="table of contents">
+      <p class="toc-label" aria-hidden="true">Contents</p>
+      {{ post.toc | safe }}
+    </aside>
+    {% endif %}
+    <article class="prose">
+      {{ post.html | safe }}
+    </article>
+  </div>
+</div>
+
+<nav class="pager shell" aria-label="post navigation">
+  {% if prev %}<a class="pager-prev" href="{{ prev.url }}"><span aria-hidden="true">←</span> {{ prev.title }}</a>{% else %}<span></span>{% endif %}
+  {% if next %}<a class="pager-next" href="{{ next.url }}">{{ next.title }} <span aria-hidden="true">→</span></a>{% endif %}
+</nav>
+{% endblock %}
