@@ -11,6 +11,7 @@ from __future__ import annotations
 import argparse
 import email.utils
 import functools
+import hashlib
 import http.server
 import re
 import shutil
@@ -60,6 +61,7 @@ class Site:
     def __init__(self, include_drafts: bool = False, out: Path = OUT) -> None:
         self.include_drafts = include_drafts
         self.out = out
+        self.stylesheet_url = "/css/main.css"
         self.env = Environment(
             loader=FileSystemLoader(ROOT / "templates"),
             autoescape=select_autoescape(["html", "xml"]),
@@ -112,6 +114,7 @@ class Site:
             nav=NAV,
             page=page,
             now=date.today(),
+            stylesheet_url=self.stylesheet_url,
             **ctx,
         )
         out_path.parent.mkdir(parents=True, exist_ok=True)
@@ -121,6 +124,12 @@ class Site:
         if self.out.exists():
             shutil.rmtree(self.out)
         shutil.copytree(ROOT / "static", self.out)
+        stylesheet = self.out / "css" / "main.css"
+        css = stylesheet.read_bytes()
+        fingerprint = hashlib.sha256(css).hexdigest()[:12]
+        versioned_stylesheet = stylesheet.with_name(f"main.{fingerprint}.css")
+        versioned_stylesheet.write_bytes(css)
+        self.stylesheet_url = f"/css/{versioned_stylesheet.name}"
 
         featured = [p for p in self.projects if p.meta.get("featured")]
         by_year: dict[int, list[Post]] = {}

@@ -37,7 +37,7 @@ def render_markdown(text: str) -> tuple[str, str]:
         extensions=[
             "extra",
             "sane_lists",
-            TocExtension(slugify=_slugify, permalink=False),
+            TocExtension(slugify=_slugify, permalink=False, toc_class="toc-links"),
             CodeHiliteExtension(guess_lang=False, css_class="codehilite"),
         ],
         output_format="html5",
