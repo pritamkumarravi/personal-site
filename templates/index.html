@@ -28,13 +28,13 @@
 <section class="section shell">
   <div class="section-row">
     <h2 class="section-title">Selected Projects</h2>
-    <a class="view-all" href="/projects/">View all →</a>
+    <a class="view-all" href="/projects/" aria-label="View all projects">View all →</a>
   </div>
   <ul class="entry-list">
     {% for p in featured %}
     <li>
-      <a class="entry-link" href="{{ p.repo }}" rel="noopener noreferrer" target="_blank">
-        <span class="entry-title">{{ p.title }}<span class="entry-ext" aria-hidden="true"> ↗</span></span>
+      <a class="entry-link" href="{{ p.url }}">
+        <span class="entry-title">{{ p.title }}</span>
         <span class="entry-desc">{{ p.tagline }}</span>
       </a>
     </li>
@@ -45,14 +45,14 @@
 <section class="section shell">
   <div class="section-row">
     <h2 class="section-title">Writing</h2>
-    <a class="view-all" href="/writing/">View all →</a>
+    <a class="view-all" href="/writing/" aria-label="View all writing">View all →</a>
   </div>
   <ul class="entry-list">
     {% for post in recent %}
     <li>
       <a class="entry-link" href="{{ post.url }}">
         <span class="entry-title">{{ post.title }}</span>
-        <span class="entry-desc">{{ post.date | fmt_date }} · {{ post.category | default("note") }}</span>
+        <span class="entry-desc">{% if post.date %}<time datetime="{{ post.date }}">{{ post.date | fmt_date }}</time> · {% endif %}{{ post.category | default("note") }}</span>
       </a>
     </li>
     {% endfor %}

@@ -11,5 +11,7 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "brotli>=1.2.1",
+    "fonttools>=4.68.0",
     "pillow>=13.0.0",
 ]

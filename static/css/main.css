@@ -94,7 +94,6 @@ body {
 ::selection { background: rgba(180, 163, 230, 0.28); }
 
 img { max-width: 100%; height: auto; display: block; }
-[hidden] { display: none !important; }
 
 a {
   color: inherit;
@@ -132,6 +131,7 @@ p a:hover, .prose li a:hover, dd a:hover, .page-sub a:hover, .lost-links a:hover
   font-size: 0.8125rem;
 }
 .skip-link:focus { left: 0; }
+.site-main { scroll-margin-top: 6rem; }
 
 .shell {
   max-width: var(--shell);
@@ -234,7 +234,9 @@ body::after {
 }
 .site-nav a:hover { color: var(--primary); }
 .site-nav a:hover::after,
+.site-nav a.is-active::after,
 .site-nav a[aria-current="page"]::after { transform: scaleX(1); }
+.site-nav a.is-active,
 .site-nav a[aria-current="page"] { color: var(--primary); }
 
 /* ---- hero ---- */
@@ -409,7 +411,6 @@ body::after {
   line-height: 1.3;
   transition: color 160ms var(--ease);
 }
-.entry-ext { color: var(--muted); font-family: var(--mono); font-size: 0.8em; }
 .entry-desc {
   grid-area: desc;
   color: var(--secondary);
@@ -434,17 +435,6 @@ body::after {
   margin-top: 0;
   min-height: 118px;
   padding: 11px 12px 12px;
-}
-
-/* the card keeps its place while the worker answers, so nothing below it shifts
-   (needs !important to out-rank the global [hidden] reset above) */
-.now[hidden] {
-  display: block !important;
-  visibility: hidden;
-}
-
-.now.now--off {
-  display: none !important;
 }
 
 .now__label {
@@ -613,7 +603,7 @@ body::after {
   letter-spacing: 0.08em;
   color: var(--muted);
 }
-.article-tags { display: inline-flex; gap: 0.6rem; margin-left: 0.5rem; }
+.article-tags { display: inline-flex; flex-wrap: wrap; gap: 0.6rem; }
 .tag { color: var(--lavender); }
 .article-title {
   margin: 0;
@@ -636,11 +626,9 @@ body::after {
 .article-body {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 3rem;
+  gap: 1.5rem;
   padding-top: 2.25rem;
 }
-
-.toc { display: none; }
 
 /* reading progress */
 .progress {
@@ -719,7 +707,6 @@ body::after {
 
 /* code blocks (pygments) */
 .codehilite {
-  position: relative;
   background: var(--surface);
   border: 1px solid var(--border-faint);
   margin: 1.6em 0;
@@ -740,22 +727,20 @@ body::after {
   font-size: inherit;
 }
 .copy-btn {
-  position: absolute;
-  top: 0.55rem;
-  right: 0.55rem;
+  display: block;
+  margin: 0.55rem 0.55rem 0 auto;
   font-family: var(--code);
   font-size: 0.625rem;
   letter-spacing: 0.12em;
+  text-transform: uppercase;
   color: var(--muted);
   background: var(--elevated);
   border: 1px solid var(--border);
+  min-height: 24px;
   padding: 0.3rem 0.6rem;
   cursor: pointer;
-  opacity: 0;
-  transition: opacity 150ms var(--ease), color 150ms var(--ease);
+  transition: color 150ms var(--ease);
 }
-.codehilite:hover .copy-btn,
-.copy-btn:focus-visible { opacity: 1; }
 .copy-btn:hover { color: var(--lavender); }
 
 .prose table {
@@ -776,35 +761,36 @@ body::after {
   background: var(--surface);
 }
 
-/* toc (wide screens) */
+/* Article contents */
+.toc {
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  border-left: 1px solid var(--border-faint);
+  padding-left: 1.25rem;
+}
+.toc-label {
+  color: var(--secondary);
+  cursor: pointer;
+}
+.toc ul { margin: 0.75rem 0 0; padding: 0; list-style: none; }
+.toc ul ul { margin-top: 0.45rem; padding-left: 0.9rem; }
+.toc li { margin-bottom: 0.45rem; }
+.toc a { color: var(--secondary); }
+.toc a:hover { color: var(--primary); }
+.toc a.active { color: var(--lavender); }
+
 @media (min-width: 66.25rem) {
-  .article-body { grid-template-columns: minmax(0, 1fr) 15rem; }
+  .article-body { grid-template-columns: minmax(0, 1fr) 15rem; gap: 3rem; }
+  .article-body > .prose { grid-column: 1; grid-row: 1; }
   .toc {
-    display: block;
     grid-column: 2;
-    grid-row: 1 / span 99;
+    grid-row: 1;
     align-self: start;
     position: sticky;
     top: 7rem;
     max-height: calc(100vh - 10rem);
     overflow-y: auto;
-    font-size: 0.75rem;
-    line-height: 1.5;
-    border-left: 1px solid var(--border-faint);
-    padding-left: 1.25rem;
   }
-  .toc-label {
-    margin: 0 0 0.75rem;
-    font-size: 0.6875rem;
-    letter-spacing: 0.16em;
-    color: var(--muted);
-  }
-  .toc ul { margin: 0; padding: 0; list-style: none; }
-  .toc ul ul { padding-left: 0.9rem; }
-  .toc li { margin-bottom: 0.45rem; }
-  .toc a { color: var(--muted); transition: color 150ms var(--ease); }
-  .toc a:hover { color: var(--primary); }
-  .toc a.active { color: var(--lavender); }
 }
 
 /* ---- pager ---- */
@@ -956,6 +942,5 @@ body::after {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
-  .pulse-dot { animation: none; }
   .now__eq span { animation: none; }
 }

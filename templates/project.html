@@ -1,9 +1,8 @@
 {% extends "base.html" %}
-{% block description %}{{ project.tagline }}{% endblock %}
 
 {% block content %}
 <section class="page-head shell">
-  <p class="crumb" aria-hidden="true"><a href="/">~</a> / <a href="/projects/">projects</a> / {{ project.slug }}</p>
+  <p class="crumb"><a href="/" aria-label="home">~</a> / <a href="/projects/">projects</a> / {{ project.slug }}</p>
   <h1 class="page-title">{{ project.title }}</h1>
   <p class="page-sub">{{ project.tagline }}</p>
   <dl class="spec-row">

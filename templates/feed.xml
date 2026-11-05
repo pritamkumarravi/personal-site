@@ -12,8 +12,8 @@
       <title>{{ post.title }}</title>
       <link>{{ site.url }}{{ post.url }}</link>
       <guid isPermaLink="true">{{ site.url }}{{ post.url }}</guid>
-      <pubDate>{{ post.date | rfc822 }}</pubDate>
-      <description><![CDATA[{{ post.summary }}]]></description>
+      {% if post.date %}<pubDate>{{ post.date | rfc822 }}</pubDate>{% endif %}
+      <description>{{ post.summary }}</description>
       {%- if post.category %}
 
       <category>{{ post.category }}</category>

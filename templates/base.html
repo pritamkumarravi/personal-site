@@ -3,25 +3,26 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  {% block title %}
-  <title>{% if page.id == "home" %}{{ site.seo_title }}{% else %}{{ page.title }} — {{ site.name }}{% endif %}</title>
-  {% endblock %}
-  <meta name="description" content="{% block description %}{{ page.description or site.description }}{% endblock %}">
-  <meta name="robots" content="{{ page.robots | default('index, follow') }}">
+  {% set title = site.seo_title if page.id == "home" else page.title ~ " — " ~ site.name %}
+  {% set description = page.description or site.description %}
+  <title>{{ title }}</title>
+  <meta name="description" content="{{ description }}">
+  <meta name="robots" content="{{ page.robots }}">
+  {% if page.id != "404" %}
   <link rel="canonical" href="{{ site.url }}{{ page.path }}">
+  {% endif %}
   <meta name="theme-color" content="#101014">
 
-  <meta property="og:type" content="{% block og_type %}website{% endblock %}">
+  <meta property="og:type" content="{{ 'article' if page.id == 'article' else 'website' }}">
   <meta property="og:site_name" content="{{ site.title }}">
-  <meta property="og:title" content="{% if page.id == 'home' %}{{ site.seo_title }}{% else %}{{ page.title }} — {{ site.name }}{% endif %}">
-  <meta property="og:description" content="{% block og_description %}{{ page.description or site.description }}{% endblock %}">
+  <meta property="og:title" content="{{ title }}">
+  <meta property="og:description" content="{{ description }}">
   <meta property="og:url" content="{{ site.url }}{{ page.path }}">
   <meta property="og:image" content="{{ site.url }}/assets/branding/og-image.png">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="{% if page.id == 'home' %}{{ site.seo_title }}{% else %}{{ page.title }} — {{ site.name }}{% endif %}">
-  <meta name="twitter:description" content="{% block twitter_description %}{{ page.description or site.description }}{% endblock %}">
+  <meta name="twitter:title" content="{{ title }}">
+  <meta name="twitter:description" content="{{ description }}">
   <meta name="twitter:image" content="{{ site.url }}/assets/branding/og-image.png">
-  {% block extra_meta %}{% endblock %}
 
   <link rel="alternate" type="application/rss+xml" title="{{ site.title }} — RSS" href="{{ site.url }}/feed.xml">
   <link rel="icon" href="/assets/branding/favicon.svg" type="image/svg+xml">
@@ -31,21 +32,16 @@
 
   <link rel="preload" href="/assets/fonts/InstrumentSerif-Regular.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/assets/fonts/IBMPlexMono-Regular.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="/assets/fonts/IBMPlexMono-Medium.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/css/main.css">
-  {% block head %}{% endblock %}
-  <script>window.SITE = { spotifyEndpoint: {{ site.spotify.worker | tojson }} };</script>
-  {% if page.id == "home" and site.spotify.enabled and site.spotify.worker %}
-  {# start the now-playing request in the head so the widget paints with data #}
-  <script>
-    window.__nowController = new AbortController();
-    window.__now = fetch({{ site.spotify.worker | tojson }}, { mode: "cors", signal: window.__nowController.signal })
-      .catch(function () { return null; });
-    window.__nowTimeout = window.setTimeout(function () { window.__nowController.abort(); }, 10000);
-    window.__now.finally(function () { window.clearTimeout(window.__nowTimeout); });
-  </script>
+  {% if has_code %}
+  <link rel="stylesheet" href="/css/pygments.css">
   {% endif %}
+  {% if page.id == "home" and site.spotify.enabled and site.spotify.worker %}
+  <script src="/js/spotify.js" defer></script>
+  {% endif %}
+  {% if page.id == "article" or has_code %}
   <script src="/js/main.js" defer></script>
+  {% endif %}
 </head>
 <body class="pg-{{ page.id }}">
 <a class="skip-link" href="#main">skip to content</a>
@@ -60,15 +56,15 @@
     <nav class="site-nav" id="site-nav" aria-label="primary">
       <ul>
         {% for id, href in nav %}
-        <li><a href="{{ href }}"{% if page.id == id %} aria-current="page"{% endif %}>{{ id }}</a></li>
+        <li><a href="{{ href }}"{% if page.path == href %} aria-current="page"{% elif page.path.startswith(href) %} class="is-active"{% endif %}>{{ id }}</a></li>
         {% endfor %}
-        <li><a href="/feed.xml" class="nav-rss">rss</a></li>
+        <li><a href="/feed.xml">rss</a></li>
       </ul>
     </nav>
   </div>
 </header>
 
-<main id="main" class="site-main">
+<main id="main" class="site-main" tabindex="-1">
 {% block content %}{% endblock %}
 </main>
 

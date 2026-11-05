@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Static site generator for pritamravi.com.
 
-    .venv/bin/python build.py            # build to output/
-    .venv/bin/python build.py --serve    # build + dev server with live rebuild
-    .venv/bin/python build.py --drafts   # include draft posts
+    uv run build.py            # build to output/
+    uv run build.py --serve    # build + dev server with live rebuild
+    uv run build.py --drafts   # include draft posts
 """
 
 from __future__ import annotations
@@ -18,8 +18,10 @@ import sys
 import threading
 import time
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, datetime, time as datetime_time, timezone
+from html import unescape
 from pathlib import Path
+from tempfile import TemporaryDirectory
 
 import yaml
 from jinja2 import Environment, FileSystemLoader, select_autoescape
@@ -55,8 +57,9 @@ class Project(Entry):
 
 
 class Site:
-    def __init__(self, include_drafts: bool = False) -> None:
+    def __init__(self, include_drafts: bool = False, out: Path = OUT) -> None:
         self.include_drafts = include_drafts
+        self.out = out
         self.env = Environment(
             loader=FileSystemLoader(ROOT / "templates"),
             autoescape=select_autoescape(["html", "xml"]),
@@ -67,7 +70,7 @@ class Site:
             fmt_date=fmt_date,
             rfc822=rfc822,
         )
-        self.site = yaml.safe_load((ROOT / "data" / "site.yaml").read_text())
+        self.site: dict = {}
         self.posts: list[Post] = []
         self.projects: list[Project] = []
         self.pages: dict[str, tuple[str, dict[str, object]]] = {}
@@ -75,9 +78,7 @@ class Site:
     # -- loading ---------------------------------------------------------------
 
     def load_content(self) -> None:
-        # re-read site.yaml here (not just __init__) so the dev server's
-        # live rebuild picks up copy/config edits too
-        self.site = yaml.safe_load((ROOT / "data" / "site.yaml").read_text())
+        self.site = yaml.safe_load((ROOT / "data" / "site.yaml").read_text(encoding="utf-8"))
         self.posts.clear()
         self.projects.clear()
         self.pages.clear()
@@ -95,7 +96,7 @@ class Site:
         )
 
         for f in sorted((ROOT / "content" / "pages").glob("*.md")):
-            meta, body = parse_frontmatter(f.read_text())
+            meta, body = parse_frontmatter(f.read_text(encoding="utf-8"))
             html, _ = render_markdown(body)
             self.pages[meta["url"]] = (meta.get("template", "page.html"), {"meta": meta, "body": html})
 
@@ -104,13 +105,11 @@ class Site:
     def render(self, template_name: str, out_path: Path, **ctx) -> None:
         template = self.env.get_template(template_name)
         page = ctx.pop("page", {})
-        page.setdefault("path", path_for(out_path))
+        page["path"] = path_for(out_path.relative_to(self.out))
         page.setdefault("robots", ctx.pop("robots", "index, follow"))
         html = template.render(
             site=self.site,
             nav=NAV,
-            posts=self.posts,
-            projects=self.projects,
             page=page,
             now=date.today(),
             **ctx,
@@ -119,100 +118,93 @@ class Site:
         out_path.write_text(html, encoding="utf-8")
 
     def build(self) -> None:
-        if OUT.exists():
-            shutil.rmtree(OUT)
-        copy_static()
+        if self.out.exists():
+            shutil.rmtree(self.out)
+        shutil.copytree(ROOT / "static", self.out)
 
         featured = [p for p in self.projects if p.meta.get("featured")]
         by_year: dict[int, list[Post]] = {}
         for p in self.posts:
             by_year.setdefault(p.year, []).append(p)
-        years = sorted(by_year, reverse=True)
-
-        common = dict(years=years)
-
         # homepage
-        self.render("index.html", OUT / "index.html",
-                    page=page("home", "home", description=self.site["home_description"]),
-                    featured=featured, recent=self.posts[:3], **common)
+        self.render("index.html", self.out / "index.html",
+                    page=page("home", "home"),
+                    featured=featured, recent=self.posts[:3])
 
         # plain pages (about)
         for url, (template, extra) in self.pages.items():
-            self.render(template, OUT / url.lstrip("/") / "index.html",
+            self.render(template, self.out / url.lstrip("/") / "index.html",
                         page=page(meta_id(url), extra["meta"].get("title", ""),
                                   description=extra["meta"].get("description")),
-                        body=extra["body"], meta=extra["meta"], **common)
+                        body=extra["body"], meta=extra["meta"],
+                        has_code='class="codehilite"' in extra["body"])
 
         # projects
-        self.render("projects.html", OUT / "projects" / "index.html",
+        self.render("projects.html", self.out / "projects" / "index.html",
                     page=page("projects", "Projects",
                               description="Engineering experiments in inference, ML systems, GPU performance and creative tooling — built to understand the internals."),
-                    all_projects=self.projects, **common)
+                    all_projects=self.projects)
         for i, proj in enumerate(self.projects):
             prev = self.projects[i - 1] if i > 0 else None
             nxt = self.projects[i + 1] if i + 1 < len(self.projects) else None
-            self.render("project.html", OUT / "projects" / proj.slug / "index.html",
-                        page=page("projects", proj.title, f"/projects/{proj.slug}/",
-                                  description=proj.tagline),
-                        project=proj, prev=prev, next=nxt, **common)
+            self.render("project.html", self.out / "projects" / proj.slug / "index.html",
+                        page=page("project", proj.title, description=proj.tagline),
+                        project=proj, prev=prev, next=nxt,
+                        has_code='class="codehilite"' in proj.html)
 
         # writing
-        self.render("writing.html", OUT / "writing" / "index.html",
+        self.render("writing.html", self.out / "writing" / "index.html",
                     page=page("writing", "Writing",
                               description="Technical notes on inference engines, GPU performance, ML systems and building things from scratch."),
-                    by_year=years and [(y, by_year[y]) for y in years],
-                    **common)
+                    by_year=sorted(by_year.items(), reverse=True))
         for i, post in enumerate(self.posts):
             prev = self.posts[i - 1] if i > 0 else None
             nxt = self.posts[i + 1] if i + 1 < len(self.posts) else None
-            self.render("article.html", OUT / "writing" / post.slug / "index.html",
-                        page=page("writing", post.title, f"/writing/{post.slug}/",
-                                  description=post.summary),
-                        post=post, prev=prev, next=nxt, **common)
+            self.render("article.html", self.out / "writing" / post.slug / "index.html",
+                        page=page("article", post.title, description=post.summary),
+                        post=post, prev=prev, next=nxt,
+                        has_code='class="codehilite"' in post.html)
 
         # 404 + feeds
-        self.render("404.html", OUT / "404.html", page=page("404", "404",
-                    description="Page not found."), robots="noindex", **common)
-        (OUT / "feed.xml").write_text(self.env.get_template("feed.xml").render(
+        self.render("404.html", self.out / "404.html", page=page("404", "404",
+                    description="Page not found."), robots="noindex")
+        (self.out / "feed.xml").write_text(self.env.get_template("feed.xml").render(
             site=self.site, posts=self.posts, now=date.today()), encoding="utf-8")
-        (OUT / "sitemap.xml").write_text(self.env.get_template("sitemap.xml").render(
+        (self.out / "sitemap.xml").write_text(self.env.get_template("sitemap.xml").render(
             site=self.site, posts=self.posts, projects=self.projects,
-            pages=[u for u in self.pages], now=date.today()), encoding="utf-8")
+            pages=dict.fromkeys([*self.pages, "/projects/", "/writing/"])),
+            encoding="utf-8")
+        (self.out / "robots.txt").write_text(
+            f"User-agent: *\nAllow: /\n\nSitemap: {self.site['url']}/sitemap.xml\n",
+            encoding="utf-8")
 
-        write_pygments_css()
-        print(f"built {sum(1 for _ in OUT.rglob('*.html'))} pages -> {OUT}")
+        write_pygments_css(self.out)
+        print(f"built {sum(1 for _ in self.out.rglob('*.html'))} pages -> {self.out}")
 
 
 # -- helpers -------------------------------------------------------------------
 
 
-def page(id_: str, title: str, path: str | None = None, description: str | None = None) -> dict:
-    return {"id": id_, "title": title, "path": path, "description": description}
+def page(id_: str, title: str, description: str | None = None) -> dict:
+    return {"id": id_, "title": title, "description": description}
 
 
 def meta_id(url: str) -> str:
     return url.strip("/").split("/")[-1]
 
 
-def path_for(out_path: Path) -> str:
-    rel = out_path.relative_to(OUT).with_suffix("")
-    if rel.name == "index":
-        rel = rel.parent
-    s = "/" + rel.as_posix()
-    if s == "/.":
-        return "/"
-    if rel.name == "404":
-        return s
-    return s.rstrip("/") + "/"
+def path_for(path: Path) -> str:
+    if path.name == "index.html":
+        return "/" if path.parent == Path(".") else f"/{path.parent.as_posix()}/"
+    return "/" + path.as_posix()
 
 
 def load_entry(f: Path, cls):
-    meta, body = parse_frontmatter(f.read_text())
+    meta, body = parse_frontmatter(f.read_text(encoding="utf-8"))
     html, toc = render_markdown(body)
     return cls(
         slug=meta.get("slug", f.stem),
         meta=meta,
-        body_md=body,
         html=html,
         toc=toc,
         date=parse_date(meta.get("date")),
@@ -225,96 +217,73 @@ def first_paragraph(html: str) -> str:
     m = re.search(r"<p>(.*?)</p>", html, re.DOTALL)
     if not m:
         return ""
-    return re.sub(r"<[^>]+>", "", m.group(1))
+    return unescape(re.sub(r"<[^>]+>", "", m.group(1)))
 
 
 def rfc822(d: date | None) -> str:
     return email.utils.format_datetime(
-        datetime_from(d or date(1970, 1, 1))
+        datetime.combine(d, datetime_time(9), timezone.utc)
     ) if d else ""
 
 
-def datetime_from(d: date):
-    from datetime import datetime as dt, timezone
-
-    return dt(d.year, d.month, d.day, 9, 0, tzinfo=timezone.utc)
-
-
-def copy_static() -> None:
-    shutil.copytree(ROOT / "static", OUT, dirs_exist_ok=True)
-    # The hero is genuine ASCII (templates/partials/shanks-ascii*.html), so
-    # the raster Shanks sources stay out of the deploy: "original shanks.jpg"
-    # is the generator's input, "shanks ascii.png" its 3.6 MB textured master
-    # and "shanks ascii-hero.webp" a former raster derivative.
-    shutil.copytree(
-        ROOT / "assets", OUT / "assets", dirs_exist_ok=True,
-        ignore=shutil.ignore_patterns(
-            "*.ttf", ".DS_Store",
-            "original shanks.jpg", "shanks ascii.png", "shanks ascii-hero.webp",
-            "blackhole.jpg", "vagabond peak.jpeg", "favicon-now-package",
-        ),
-    )
-
-
-def write_pygments_css() -> None:
+def write_pygments_css(out: Path) -> None:
     from pygments.formatters import HtmlFormatter
 
     from lib.pygments_style import SiteStyle
 
     css = HtmlFormatter(style=SiteStyle).get_style_defs(".codehilite")
-    (OUT / "css" / "pygments.css").write_text(css + "\n", encoding="utf-8")
+    (out / "css" / "pygments.css").write_text(css + "\n", encoding="utf-8")
 
 
 # -- dev server ------------------------------------------------------------------
 
 
 class Rebuilder:
-    def __init__(self, drafts: bool) -> None:
-        self.drafts = drafts
-        self.stamp = 0.0
+    def __init__(self) -> None:
+        self.snapshot: dict[Path, int] = {}
 
     def sources(self):
-        for sub in ("content", "data", "templates", "static", "assets", "lib"):
+        for sub in ("content", "data", "templates", "static"):
             root = ROOT / sub
             for p in root.rglob("*"):
                 if p.is_file():
                     yield p
 
     def changed(self) -> bool:
-        latest = max((p.stat().st_mtime for p in self.sources()), default=0.0)
-        if latest > self.stamp:
-            self.stamp = latest
-            return True
-        return False
+        snapshot = {p: p.stat().st_mtime_ns for p in self.sources()}
+        changed = snapshot != self.snapshot
+        self.snapshot = snapshot
+        return changed
 
 
 def serve(drafts: bool, port: int) -> None:
-    reb = Rebuilder(drafts)
-    reb.changed()
-    site = Site(drafts)
-    site.load_content()
-    site.build()
+    with TemporaryDirectory(prefix="pritamravi-preview-") as directory:
+        reb = Rebuilder()
+        reb.changed()
+        site = Site(drafts, Path(directory) / "output")
+        site.load_content()
+        site.build()
 
-    handler = functools.partial(http.server.SimpleHTTPRequestHandler, directory=str(OUT))
-    httpd = http.server.ThreadingHTTPServer(("127.0.0.1", port), handler)
+        handler = functools.partial(http.server.SimpleHTTPRequestHandler, directory=str(site.out))
+        httpd = http.server.ThreadingHTTPServer(("127.0.0.1", port), handler)
 
-    def watch() -> None:
-        while True:
-            time.sleep(1.0)
-            try:
-                if reb.changed():
-                    print("·· change detected, rebuilding")
-                    site.load_content()
-                    site.build()
-            except Exception as exc:  # keep the server alive through content typos
-                print(f"!! rebuild failed: {exc}", file=sys.stderr)
+        def watch() -> None:
+            while True:
+                time.sleep(1.0)
+                try:
+                    if reb.changed():
+                        print("·· change detected, rebuilding")
+                        site.load_content()
+                        site.build()
+                except Exception as exc:  # keep the server alive through content typos
+                    print(f"!! rebuild failed: {exc}", file=sys.stderr)
 
-    threading.Thread(target=watch, daemon=True).start()
-    print(f"serving http://127.0.0.1:{port}/  (ctrl-c to stop)")
-    try:
-        httpd.serve_forever()
-    except KeyboardInterrupt:
-        pass
+        threading.Thread(target=watch, daemon=True).start()
+        print(f"serving http://127.0.0.1:{port}/  (ctrl-c to stop)")
+        try:
+            httpd.serve_forever()
+        except KeyboardInterrupt:
+            pass
 
 
 def main() -> None:

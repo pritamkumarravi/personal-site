@@ -3,9 +3,9 @@
 
     uv run tools/generate_shanks_ascii.py
 
-Input   assets/images/original shanks.jpg (736x1308 master)
-Output  assets/art/shanks.txt                      — desktop, plain text asset
-        assets/art/shanks-mobile.txt               — mobile recomposition
+Input   tools/sources/images/original shanks.jpg (736x1308 master)
+Output  static/assets/art/shanks.txt               — desktop, plain text asset
+        static/assets/art/shanks-mobile.txt        — mobile recomposition
         templates/partials/shanks-ascii.html       — desktop fragment
         templates/partials/shanks-ascii-mobile.html— mobile fragment
         (fragments are included by templates/index.html)
@@ -32,7 +32,7 @@ from pathlib import Path
 from PIL import Image, ImageFilter, ImageOps
 
 ROOT = Path(__file__).resolve().parent.parent
-SRC = ROOT / "assets" / "images" / "original shanks.jpg"
+SRC = ROOT / "tools" / "sources" / "images" / "original shanks.jpg"
 
 # bright -> dense; the trailing space is the "no ink" cell
 RAMP = r"$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\|()1{}[]?-_+~<>i!lI;:,\"^`'. "
@@ -452,9 +452,9 @@ def main() -> None:
     ap.add_argument("--css-class", default="ascii-art", help="class for the desktop fragment")
     ap.add_argument("--preview-dir", type=Path, default=None,
                     help="write desktop/mobile standalone HTML previews here")
-    ap.add_argument("--out-txt", type=Path, default=ROOT / "assets/art/shanks.txt")
+    ap.add_argument("--out-txt", type=Path, default=ROOT / "static/assets/art/shanks.txt")
     ap.add_argument("--out-html", type=Path, default=ROOT / "templates/partials/shanks-ascii.html")
-    ap.add_argument("--mobile-out-txt", type=Path, default=ROOT / "assets/art/shanks-mobile.txt")
+    ap.add_argument("--mobile-out-txt", type=Path, default=ROOT / "static/assets/art/shanks-mobile.txt")
     ap.add_argument("--mobile-out-html", type=Path,
                     default=ROOT / "templates/partials/shanks-ascii-mobile.html")
     args = ap.parse_args()

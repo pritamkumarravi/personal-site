@@ -4,7 +4,7 @@ slug: wan21-bench
 tagline: Benchmark tooling for video generation models — where GPU performance engineering meets creative output, and every measurement is a multi-second render.
 year: 2026
 stack: [Python, PyTorch, CUDA]
-repo: https://github.com/pritamkumarravi/wan21-bench
+repo: https://github.com/pritamkumarravi/wan2.1-bench
 status: active
 priority: 1
 featured: true
@@ -51,7 +51,3 @@ boring by design, so the interesting numbers are trustworthy.
 - Memory, not FLOPs, is usually the wall on consumer GPUs.
 - Creative quality and systems performance are the same project:
   the fastest pipeline is useless if the output isn't worth watching.
-
-## repository
-
-Source and notes live on [GitHub](https://github.com/pritamkumarravi/wan21-bench).

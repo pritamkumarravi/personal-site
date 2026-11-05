@@ -4,7 +4,6 @@ slug: simplevm
 tagline: A small virtual machine — instruction dispatch, a memory model, and what actually sits between source and silicon.
 year: 2025
 stack: [C, Python]
-repo: https://github.com/pritamkumarravi/simplevm
 status: stable
 priority: 4
 featured: true
@@ -47,7 +46,3 @@ reference and the source can't drift apart.
 - Writing assembly *for your own machine* reveals how much syntax is kindness.
 - This project quietly reorganized how I read performance advice —
   branch prediction, cache lines and dispatch cost stopped being folklore.
-
-## repository
-
-Source and notes live on [GitHub](https://github.com/pritamkumarravi/simplevm).

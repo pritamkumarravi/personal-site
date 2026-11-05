@@ -4,7 +4,6 @@ slug: mini-sglang
 tagline: A minimal reimplementation of an LLM serving system's core paths — built to understand what a production inference stack actually does between a request and a token.
 year: 2026
 stack: [Python, PyTorch, CUDA]
-repo: https://github.com/pritamkumarravi/mini-sglang
 status: active
 priority: 2
 featured: true
@@ -53,7 +52,3 @@ be swapped without touching the other.
   hides almost everything interesting.
 - Reading the real implementation afterwards felt completely different:
   the unfamiliar parts had shrunk to genuinely novel details.
-
-## repository
-
-Source and notes live on [GitHub](https://github.com/pritamkumarravi/mini-sglang).

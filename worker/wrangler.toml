@@ -9,4 +9,4 @@ compatibility_date = "2025-01-01"
 #   ACCESS_KEY       (optional shared-key gate)
 # ALLOWED_ORIGIN is a variable configured below, not a secret.
 [vars]
-ALLOWED_ORIGIN = http://localhost:8000,https://pritamravi.com,https://personal-site-33l.pages.dev
+ALLOWED_ORIGIN = "http://localhost:8000,http://127.0.0.1:8000,https://pritamravi.com,https://personal-site-33l.pages.dev"

@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Render the 1200x630 Open Graph social preview image.
 
-    .venv/bin/python tools/og_image.py
+    uv run tools/og_image.py
 
-Output: assets/branding/og-image.png (shipped to /assets/branding/og-image.png).
+Output: static/assets/branding/og-image.png.
 Uses the Shanks artwork, blended into the background via lighten so its black
 base merges with the card's charcoal.
 """
@@ -13,9 +13,9 @@ from pathlib import Path
 from PIL import Image, ImageChops, ImageDraw, ImageFont
 
 ROOT = Path(__file__).resolve().parent.parent
-FONTS = ROOT / "assets" / "fonts"
-IMAGES = ROOT / "assets" / "images"
-OUT = ROOT / "assets" / "branding" / "og-image.png"
+FONTS = ROOT / "tools" / "sources" / "fonts"
+IMAGES = ROOT / "tools" / "sources" / "images"
+OUT = ROOT / "static" / "assets" / "branding" / "og-image.png"
 
 W, H = 1200, 630
 

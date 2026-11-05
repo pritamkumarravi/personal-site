@@ -26,8 +26,8 @@ use and hard to see into; most of what I do is an attempt to see into them.
 
 Right now I'm working through LLM inference and serving systems: reading
 implementations, running my own, and rebuilding simplified versions to test
-whether I actually understand a component or just recognize it. The honest,
-up-to-date list lives on the [homepage](/).
+whether I actually understand a component or just recognize it. The experiments
+are collected on the [projects page](/projects/).
 
 ## how i think
 

@@ -1,143 +1,89 @@
 # prλtam — pritamravi.com
 
-A personal digital archive: minimal retro-cyberpunk, 80% editorial restraint,
-20% terminal atmosphere. Built with a custom Python static-site generator —
-no frameworks, no database, static-first.
+Pritam Ravi's personal site for projects and writing about inference engineering,
+ML systems, and GPU performance. Python, Jinja, and Markdown generate the static
+site. A separate Cloudflare Worker powers the Spotify card.
 
-```
-Understand the fundamentals. Build from scratch. Explore beyond the abstractions.
-```
+## Run locally
 
-## quick start
+With Python 3.13 or newer and [uv](https://docs.astral.sh/uv/):
 
-```bash
-python3 -m venv .venv
-.venv/bin/pip install -r requirements.txt
-.venv/bin/python build.py            # → output/
-.venv/bin/python build.py --serve    # dev server with live rebuild (127.0.0.1:8000)
+```sh
+uv run --locked build.py
+uv run --locked tools/check_site.py
+uv run --locked build.py --serve
 ```
 
-The `.github/workflows/deploy.yml` workflow can publish to GitHub Pages only
-when manually dispatched; pushes to `main` do not publish a website. Production
-hosting is separate and uses the Hermes VPS flow below.
+The preview runs at <http://127.0.0.1:8000/> and rebuilds when content, templates,
+or public files change. Add `--drafts` to preview unpublished posts. The
+preview builds in a temporary directory. The production build writes to
+`output/`, which is ignored by Git.
 
-## where things live
+## Repository layout
 
-| Path | What it is |
-|---|---|
-| `data/site.yaml` | identity, tagline, socials, homepage copy, **currently** list, Spotify config — edit this first |
-| `content/pages/` | standalone pages (`about.md`); frontmatter picks the template |
-| `content/projects/*.md` | one page per project; `priority` orders lists, `featured: true` puts it on the homepage |
-| `content/writing/*.md` | posts — `title/date/category/tags/summary` frontmatter; `draft: true` hides unless `--drafts` |
-| `templates/` | Jinja2 templates (`base.html` + pages + partials) |
-| `static/` | css, js, robots.txt — copied verbatim |
-| `assets/` | web fonts, ASCII art and images; build inputs and unused variants are omitted from `output/` |
-| `tools/` | generators: fonts, ASCII art, OG image, Spotify auth helper |
-| `worker/` | Cloudflare Worker for Spotify now-playing |
-| `lib/` | generator internals (frontmatter, markdown, pygments style) |
+| Path | Contents |
+| --- | --- |
+| `content/` | Markdown pages, projects, and posts |
+| `data/site.yaml` | Site identity, homepage copy, social links, and Spotify endpoint |
+| `templates/` | Jinja layouts, article and project pages, and the ASCII hero |
+| `static/` | CSS, JavaScript, and public assets copied into the build |
+| `build.py`, `lib/` | Build entry point and content rendering |
+| `tools/` | Build checks, artwork generators, and Spotify authorization |
+| `tools/sources/` | Original artwork and fonts used by the generators |
+| `worker/` | Spotify endpoint and its Wrangler configuration |
 
-## writing a post
+## Edit content and artwork
 
-Create `content/writing/my-note.md`:
+Add posts to `content/writing/` with `title`, `date`, `category`, `tags`, and
+`summary` frontmatter. Use `draft: true` to keep a post out of the public build.
+The writing archive, RSS feed, and sitemap are generated during the build.
 
-```markdown
----
-title: My note
-date: 2026-11-02
-category: systems
-tags: [gpu, inference]
-summary: One-sentence hook used on lists, RSS and social cards.
----
+Add projects to `content/projects/`. Use `priority` to order them and
+`featured: true` to include them on the homepage. Set `repo` to a public
+source URL to show a link on the project detail page.
 
-Body markdown. `##` headings build the INDEX.TXT sidebar and get
-terminal-style `//` prefixes. Fenced code gets Pygments in the site palette.
+Regenerate the public artwork and fonts when their inputs change:
+
+```sh
+uv run --locked tools/generate_shanks_ascii.py
+uv run --locked tools/og_image.py
+uv run --locked tools/fonts.py
 ```
 
-The archive at `/writing/` groups by year; the homepage shows the three
-latest; `/feed.xml` and `/sitemap.xml` regenerate on every build.
+The first command regenerates both ASCII compositions and their HTML
+fragments. It accepts `--preview-dir` for standalone previews.
 
-## artwork
+## Cloudflare Pages
 
-- **Hero**: genuine character-based ASCII, generated from
-  `assets/images/original shanks.jpg` (the clean master; the site's hero is
-  the text rendering, not a raster):
+Production is at <https://pritamravi.com/>. The Pages project also serves
+<https://personal-site-33l.pages.dev/>. Build from the repository root with
+Python 3.13 or newer and publish the generated `output` directory. A build
+command that works independently of automatic dependency installation is:
 
-  ```bash
-  uv run tools/generate_shanks_ascii.py
-  ```
+```sh
+python -m pip install -r requirements.txt && python build.py
+```
 
-  One run writes both compositions — a desktop portrait
-  (`assets/art/shanks.txt` + `templates/partials/shanks-ascii.html`) and a
-  recomposed, face-forward mobile crop (`assets/art/shanks-mobile.txt` +
-  `templates/partials/shanks-ascii-mobile.html`). The homepage swaps between
-  them at 900px; the mobile art is a separate crop, not a squeeze.
-  Deterministic — same input, same output. Colour is generated, not random:
-  lavender lands on the top-K brightest inked cells (the eye glint, the
-  sword guard), phosphor is a rare midtone scatter. Tune with
-  `--preview-dir <dir>` while adjusting `--crop`, `--cols`, `--blur`
-  (pre-downsample hatch suppression), `--gamma`, `--contrast`, `--floor`,
-  `--prelocal` (pre-downsample local contrast), `--hi-pct` (lavender share)
-  and `--green`.
-  `tools/ascii_art.py` remains the general-purpose image→ASCII converter.
-- **Social preview**: `tools/og_image.py` regenerates
-  `assets/branding/og-image.png` (1200×630), served at
-  `/assets/branding/og-image.png`.
-- **Fonts**: `tools/fonts.py` re-subsets `assets/fonts/*.ttf` to woff2
-  (Latin + Greek λ + terminal glyphs for JetBrains Mono).
+GitHub Actions builds and checks the site. Manage production deployments in
+Cloudflare Pages. When runtime dependencies change, regenerate the Pages
+requirements from the lockfile:
 
-## spotify now-playing
+```sh
+uv export --locked --no-dev --no-emit-project --no-hashes --output-file requirements.txt
+```
 
-1. Create an app at <https://developer.spotify.com/dashboard>, register the
-   exact redirect URI `http://127.0.0.1:8765/callback`, and allow
-   the `user-read-currently-playing` and `user-read-recently-played`
-   scopes (the second powers the "played Xm ago" fallback).
-2. `.venv/bin/python tools/spotify_auth.py` → prints a refresh token.
-   Re-run it if your token predates the recently-played scope.
+## Spotify Worker
+
+1. In the [Spotify developer dashboard](https://developer.spotify.com/dashboard),
+   register `http://127.0.0.1:8765/callback`. The authorization helper requests
+   the currently playing and recently played scopes.
+2. Run `uv run --locked tools/spotify_auth.py` to obtain a refresh token.
 3. From `worker/`, set `SPOTIFY_CLIENT_ID`, `SPOTIFY_CLIENT_SECRET`, and
-   `SPOTIFY_REFRESH_TOKEN` with `npx wrangler secret put <NAME>`. Keep
-   `ALLOWED_ORIGIN` in `wrangler.toml`'s `[vars]`; it is not a secret. An
-   `ACCESS_KEY` embedded in a public site's URL is visible to visitors, so
-   leave it unset for this public read-only widget unless there is a specific
-   reason to retain the gate.
-4. Put the worker URL in `data/site.yaml → spotify.worker`
-   (include `?key=…` if you set `ACCESS_KEY`).
+   `SPOTIFY_REFRESH_TOKEN` using `npx wrangler secret put <NAME>`.
+4. Review the allowed browser origins in `worker/wrangler.toml`, then run
+   `npx wrangler deploy` from `worker/`. Set the resulting `/now` URL in
+   `data/site.yaml`. Set `spotify.enabled: false` to hide the card.
 
-The worker answers with the live track (title link, artists // album,
-▓░ progress meter, clock, animated equalizer) or — when nothing is
-playing — the last track with "played Xm ago". The last answer is cached
-in localStorage, so revisits render it instantly with "spotify // syncing"
-until the fresh answer lands. After two consecutive request failures, the
-widget shows an unavailable state and retries after two minutes. The site
-never depends on Spotify being available.
-
-## deploying to Hermes with Caddy
-
-Build locally, then copy the generated site to the directory served by the
-Dockerized Caddy instance on Hermes:
-
-```bash
-.venv/bin/python build.py
-rsync -av output/ <user>@<hermes>:<caddy-site-root>/
-```
-
-Replace the placeholders with the SSH account, hostname, and site root already
-configured on Hermes. Caddy's site root and HTTPS configuration live with the
-server deployment; this repository does not contain or deploy that setup.
-`output/` is generated during the build and is intentionally not tracked.
-
-After copying a build, verify `/`, `/about/`, `/projects/`, `/writing/`,
-`/feed.xml`, `/sitemap.xml`, `/404.html`, the font files, and the Spotify
-Worker request over HTTPS. The Worker remains hosted on Cloudflare; this site
-build does not contain Spotify credentials. GitHub Actions does not deploy to
-Hermes. Manually running the retained GitHub Pages workflow still publishes a
-separate Pages site.
-
-## performance notes
-
-- Fonts: 8 subsetted woff2 files (~170 KB total), preloaded critical three,
-  `font-display: swap`.
-- JS: one small vanilla file, deferred; everything works without it
-  (responsive navigation links, copy buttons, TOC scrollspy, reading progress, Spotify are
-  progressive enhancements).
-- No layout-shifting hero: ASCII art is text; the OG image is static.
-- `prefers-reduced-motion` disables the glitch, pulse and transitions.
+The site can use the public read-only endpoint. Use the optional `ACCESS_KEY`
+only for private consumers that can keep it out of public URLs. The browser
+reuses the last known track and polls while the card is in view.

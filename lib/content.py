@@ -5,7 +5,6 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 from datetime import date, datetime
-from pathlib import Path
 
 import markdown as md_lib
 import yaml
@@ -44,7 +43,7 @@ def render_markdown(text: str) -> tuple[str, str]:
         output_format="html5",
     )
     html = md.convert(text)
-    return html, getattr(md, "toc", "")
+    return html, md.toc if md.toc_tokens else ""
 
 
 def _slugify(value, separator="-"):
@@ -58,7 +57,6 @@ class Entry:
 
     slug: str
     meta: dict
-    body_md: str
     html: str = ""
     toc: str = ""
     date: date | None = None
@@ -77,10 +75,10 @@ class Entry:
 
 
 def parse_date(value) -> date | None:
-    if isinstance(value, date):
-        return value
     if isinstance(value, datetime):
         return value.date()
+    if isinstance(value, date):
+        return value
     if isinstance(value, str):
         return date.fromisoformat(value.strip())
     return None

@@ -4,7 +4,7 @@
 Subsets to Latin + Greek (lambda) + punctuation + typographic symbols +
 arrows/box-drawing (mono faces only). Run from the project root:
 
-    .venv/bin/python tools/fonts.py
+    uv run tools/fonts.py
 """
 
 from pathlib import Path
@@ -12,7 +12,8 @@ from pathlib import Path
 from fontTools import subset
 
 ROOT = Path(__file__).resolve().parent.parent
-SRC = ROOT / "assets" / "fonts"
+SRC = ROOT / "tools" / "sources" / "fonts"
+OUT = ROOT / "static" / "assets" / "fonts"
 FONTS = [
     "InstrumentSerif-Regular",
     "InstrumentSerif-Italic",
@@ -39,7 +40,7 @@ TERMINAL = ",U+2190-21FF,U+2500-259F,U+25A0-25FF"
 def convert(name: str) -> None:
     args = [
         f"{SRC / (name + '.ttf')}",
-        f"--output-file={SRC / (name + '.woff2')}",
+        f"--output-file={OUT / (name + '.woff2')}",
         "--flavor=woff2",
         f"--unicodes={BASE_UNICODE}{GREEK if name.startswith(('IBM', 'Jet')) else ''}"
         f"{TERMINAL if name.startswith('Jet') else ''}",
@@ -53,7 +54,7 @@ def convert(name: str) -> None:
 def main() -> None:
     for name in FONTS:
         convert(name)
-        size = (SRC / (name + ".woff2")).stat().st_size
+        size = (OUT / (name + ".woff2")).stat().st_size
         print(f"  {name}.woff2  {size / 1024:6.1f} KB")
 
 

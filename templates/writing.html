@@ -1,9 +1,8 @@
 {% extends "base.html" %}
-{% block description %}Technical notes on inference engines, GPU performance, ML systems and building things from scratch.{% endblock %}
 
 {% block content %}
 <section class="page-head shell">
-  <p class="crumb" aria-hidden="true"><a href="/">~</a> / writing</p>
+  <p class="crumb"><a href="/" aria-label="home">~</a> / writing</p>
   <h1 class="page-title">writing</h1>
   <p class="page-sub">Notes from taking systems apart — first-principles explanations, benchmarks, and lessons from rebuilding things by hand. Subscribe via <a href="/feed.xml">RSS</a>.</p>
 </section>
@@ -12,14 +11,14 @@
   {% for year, year_posts in by_year %}
   <section class="archive-year">
     <h2 class="archive-year-label">{{ year }}</h2>
-    <ul class="entry-list entry-list-plain">
+    <ul class="entry-list">
       {% for post in year_posts %}
-      <li class="entry">
+      <li>
         <a class="entry-link" href="{{ post.url }}">
           <span class="entry-title">{{ post.title }}</span>
-          <span class="entry-meta">
-            <span class="entry-date">{{ post.date | fmt_date }}</span>
-            <span class="entry-cat">{{ post.category | default("note") | lower }} · {{ post.read_minutes }} min</span>
+          <span class="entry-desc">
+            {% if post.date %}<time datetime="{{ post.date }}">{{ post.date | fmt_date }}</time> · {% endif %}
+            {{ post.category | default("note") | lower }} · {{ post.read_minutes }} min
           </span>
         </a>
       </li>

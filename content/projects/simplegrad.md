@@ -4,7 +4,6 @@ slug: simplegrad
 tagline: Reverse-mode automatic differentiation from scratch — a tiny autograd engine, because backpropagation shouldn't be a library you import.
 year: 2025
 stack: [Python]
-repo: https://github.com/pritamkumarravi/simplegrad
 status: stable
 priority: 3
 featured: true
@@ -52,7 +51,3 @@ No global state, no hidden passes — the algorithm is the file.
   almost every gradient bug.
 - After this, reading a framework's autograd code became structural reading —
   I could see which parts were the idea and which were performance.
-
-## repository
-
-Source and notes live on [GitHub](https://github.com/pritamkumarravi/simplegrad).

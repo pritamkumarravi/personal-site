@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Convert an image to ASCII art for the site.
 
-    .venv/bin/python tools/ascii_art.py assets/images/blackhole.jpg \
+    uv run tools/ascii_art.py tools/sources/images/blackhole.jpg \
         --width 68 --charset ascii --gamma 1.1 --invert
 
 This standalone converter writes to stdout by default. Use --out to save a

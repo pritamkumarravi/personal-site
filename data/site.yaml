@@ -3,13 +3,9 @@
 title: prλtam
 name: Pritam Ravi
 url: https://pritamravi.com        # no trailing slash
-tagline: Building systems. Exploring creative intelligence.
 
-# SEO: homepage title/description are composed from these (spec §14).
+# Default title and description for search and sharing.
 seo_title: Pritam Ravi — ML Systems & Inference Engineering
-home_description: >-
-  Pritam Ravi explores inference engineering, ML systems, GPU performance and
-  creative intelligence. Building systems and learning from first principles.
 description: >-
   Pritam Ravi explores inference engineering, ML systems, GPU performance and
   creative intelligence. Building systems and learning from first principles.
@@ -20,9 +16,7 @@ social:
   linkedin: https://www.linkedin.com/in/pritam-ai/
 email: pritamkumarravi38@gmail.com
 
-# Spotify now-playing. Deploy worker/ to Cloudflare and put its URL here
-# (append ?key=… if the worker's ACCESS_KEY secret is set).
-# Leave worker blank — or enabled false — and the section stays hidden.
+# Public URL for the Spotify Worker. Set enabled to false to hide the card.
 spotify:
   enabled: true
   worker: "https://pritam-spotify.pritamkumarravi38.workers.dev/now"

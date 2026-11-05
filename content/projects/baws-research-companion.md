@@ -4,7 +4,6 @@ slug: baws-research-companion
 tagline: A tool built out of real workflow friction — keeping reading, notes and experiments in one place while doing research.
 year: 2025
 stack: [Python]
-repo: https://github.com/pritamkumarravi/baws-research-companion
 status: wip
 priority: 5
 featured: true
@@ -44,7 +43,3 @@ unfinished in places — it grows when the workflow does.
 - The best data model is the one you'll actually maintain at 1 a.m.
 - Building for yourself first surfaces requirements no specification
   would have mentioned.
-
-## repository
-
-Source lives on [GitHub](https://github.com/pritamkumarravi/baws-research-companion).

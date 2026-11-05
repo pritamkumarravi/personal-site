@@ -55,7 +55,10 @@ export default {
     if (env.ACCESS_KEY && url.searchParams.get("key") !== env.ACCESS_KEY) {
       return json({ error: "forbidden" }, 401, { ...cors, "cache-control": "no-store" });
     }
-    const headers = { ...cors, "cache-control": "public, max-age=30, stale-while-revalidate=600" };
+    const headers = {
+      ...cors,
+      "cache-control": env.ACCESS_KEY ? "no-store" : "public, max-age=30, stale-while-revalidate=600",
+    };
     try {
       // Warm isolate: answer from memory.
       if (cached.body && Date.now() - cached.at <= CACHE_MS) {
@@ -76,8 +79,8 @@ export default {
       if (edge) ctx.waitUntil(storeAtEdge(edge, body));
       return json(body, 200, headers);
     } catch (error) {
-      const message = error && error.message ? error.message : String(error);
-      return json({ error: message }, 502, { ...cors, "cache-control": "no-store" });
+      console.error("Spotify now-playing request failed", error);
+      return json({ error: "spotify unavailable" }, 502, { ...cors, "cache-control": "no-store" });
     }
   },
 };
@@ -114,7 +117,7 @@ async function refresh(env, edge) {
 }
 
 function corsHeaders(origin, env) {
-  const allowed = String(env.ALLOWED_ORIGIN || "http://localhost:8000,https://pritamravi.com")
+  const allowed = String(env.ALLOWED_ORIGIN || "http://localhost:8000,http://127.0.0.1:8000,https://pritamravi.com")
     .split(",")
     .map((value) => value.trim())
     .filter(Boolean);
@@ -164,8 +167,7 @@ async function accessToken(env) {
 async function nowPlaying(env) {
   const headers = { authorization: `Bearer ${await accessToken(env)}` };
   const fetchedAt = new Date().toISOString();
-  // Both calls at once: the recent one is only read if nothing is playing.
-  const [current, recentPromise] = [await fetch(NOW_URL, { headers }), fetch(RECENT_URL, { headers })];
+  const current = await fetch(NOW_URL, { headers });
   if (current.status === 200) {
     const data = await current.json();
     if (data && data.item && data.currently_playing_type === "track") {
@@ -182,7 +184,8 @@ async function nowPlaying(env) {
     throw new Error(`spotify currently-playing failed (${current.status})`);
   }
   // Nothing playing, or an ad or podcast: fall back to the last track played.
-  const recent = await recentPromise;
+  const recent = await fetch(RECENT_URL, { headers });
+  if (recent.status === 401) token = { value: null, expiresAt: 0 };
   if (!recent.ok) throw new Error(`spotify recently-played failed (${recent.status})`);
   const data = await recent.json();
   const item = data.items && data.items[0];
