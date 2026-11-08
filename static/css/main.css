@@ -558,19 +558,12 @@ body::after {
 }
 
 .now__meter {
-  appearance: none;
-  flex: 1;
+  flex: 0 1 8ch;
   min-width: 0;
-  height: 4px;
-  border: 0;
-  border-radius: 2px;
   overflow: hidden;
-  background: var(--border);
+  color: var(--lavender);
 }
 
-.now__meter::-webkit-progress-bar { background: var(--border); }
-.now__meter::-webkit-progress-value { background: var(--lavender); }
-.now__meter::-moz-progress-bar { background: var(--lavender); }
 .now__time { font-variant-numeric: tabular-nums; }
 
 /* ---- page heads ---- */

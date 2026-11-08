@@ -16,6 +16,7 @@
     const content = box.querySelector(".now__content");
     const label = box.querySelector(".now__state");
     if (!endpoint || !content || !label || !window.fetch) return;
+    const meterCells = 8;
     const lower = (value) => String(value || "").trim().toLowerCase();
     const firstArtist = (track) => (track.artists || []).find((name) => typeof name === "string" && name.trim()) || "";
     const clock = (ms) => {
@@ -59,9 +60,12 @@
       const fetchedAt = Date.parse(data.fetched_at);
       const origin = Number.isFinite(fetchedAt) ? fetchedAt : receivedAt;
       const age = data.playing ? Math.max(0, Date.now() - origin) : 0;
-      const position = Math.min(playback.meter.max, data.progress_ms + age);
-      const timestamp = clock(position) + " / " + clock(playback.meter.max);
-      playback.meter.value = position;
+      const duration = data.track.duration_ms;
+      const position = Math.min(duration, data.progress_ms + age);
+      const filled = Math.round(position / duration * meterCells);
+      const timestamp = clock(position) + " / " + clock(duration);
+      playback.meter.textContent = "▓".repeat(filled) + "░".repeat(meterCells - filled);
+      playback.meter.setAttribute("aria-valuenow", String(Math.round(position)));
       playback.meter.setAttribute("aria-valuetext", timestamp);
       playback.time.textContent = timestamp;
     };
@@ -98,9 +102,10 @@
         Number.isFinite(duration) && duration > 0;
       const controls = node("div", "now__playback", "");
       if (hasProgress) {
-        const meter = node("progress", "now__meter", "");
-        meter.max = duration;
+        const meter = node("span", "now__meter", "");
+        meter.setAttribute("role", "progressbar");
         meter.setAttribute("aria-label", "Playback progress");
+        meter.setAttribute("aria-valuemax", String(duration));
         const time = node("span", "now__time", "");
         time.setAttribute("aria-hidden", "true");
         controls.append(meter, time);
