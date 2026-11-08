@@ -848,6 +848,7 @@ body::after {
     display: block;
     /* 56 columns × 0.6em per cell; size to 80% of the hero's content width. */
     font-size: min(8px, calc((100vw - 2 * var(--gutter)) / 42));
+    font-variant-ligatures: none;
     white-space: pre;
   }
 
