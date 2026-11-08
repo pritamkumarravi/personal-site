@@ -72,6 +72,16 @@
       mark.setAttribute("aria-hidden", "true");
       const trackRow = node("div", "now__track", "");
       trackRow.append(mark, title);
+      if (data.playing) {
+        const equalizer = node("span", "now__eq", "");
+        equalizer.setAttribute("aria-hidden", "true");
+        [..."▂▅▃▇"].forEach((glyph, index) => {
+          const bar = node("span", "", glyph);
+          bar.style.setProperty("--i", index);
+          equalizer.append(bar);
+        });
+        trackRow.append(equalizer);
+      }
       content.replaceChildren(trackRow);
 
       const artist = node("span", "now__artist", lower(firstArtist(track)));

@@ -499,6 +499,24 @@ body::after {
   text-decoration: underline;
 }
 
+.now__eq {
+  color: var(--phosphor);
+  display: flex;
+  flex: none;
+  margin-inline-start: auto;
+  padding-inline-start: 1ch;
+}
+
+.now__eq span {
+  animation: now-eq calc(0.9s + var(--i) * 0.17s) ease-in-out calc(var(--i) * -0.3s) infinite alternate;
+  transform-origin: bottom;
+}
+
+@keyframes now-eq {
+  from { transform: scaleY(0.3); }
+  to { transform: scaleY(1); }
+}
+
 .now__meta {
   color: var(--muted);
   display: flex;
@@ -939,4 +957,5 @@ body::after {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+  .now__eq span { animation: none; }
 }
