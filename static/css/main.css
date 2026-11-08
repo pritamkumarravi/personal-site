@@ -319,7 +319,7 @@ body::after {
   grid-area: spotify;
   justify-self: center;
   margin-top: 0;
-  width: min(100%, 16rem);
+  width: min(100%, 22rem);
 }
 
 /* hero artwork — genuine ASCII rendered into the page at build time
@@ -427,13 +427,11 @@ body::after {
 /* ---- spotify now playing ---- */
 
 .now {
-  max-width: none;
-  width: 100%;
+  --now-indent: 2ch;
   background: rgb(180 163 230 / 0.05);
   border: 1px solid rgb(180 163 230 / 0.16);
-  margin-top: 0;
   min-height: 118px;
-  padding: 11px 12px 12px;
+  padding: 0.75rem;
 }
 
 .now__label {
@@ -487,7 +485,7 @@ body::after {
 
 .now__mark {
   color: var(--lavender);
-  flex: 0 0 2ch;
+  flex: 0 0 var(--now-indent);
 }
 
 .now__title {
@@ -495,7 +493,8 @@ body::after {
   text-decoration: none;
 }
 
-.now__title:hover {
+.now__title:hover,
+.now__title:focus-visible {
   text-decoration: underline;
 }
 
@@ -521,7 +520,7 @@ body::after {
   color: var(--muted);
   display: flex;
   gap: 1ch;
-  padding-inline-start: 2ch;
+  padding-inline-start: var(--now-indent);
 }
 
 .now__title,
@@ -535,7 +534,7 @@ body::after {
 
 .now__artist:not(:only-child) {
   flex: none;
-  max-width: 65%;
+  max-width: calc(100% - 8ch);
 }
 
 .now__separator {
@@ -547,7 +546,7 @@ body::after {
   display: flex;
   align-items: center;
   gap: 1ch;
-  padding-inline-start: 2ch;
+  padding-inline-start: var(--now-indent);
   line-height: 1.25;
   white-space: nowrap;
 }
@@ -558,10 +557,27 @@ body::after {
 }
 
 .now__meter {
+  position: relative;
   flex: 0 1 8ch;
   min-width: 0;
   overflow: hidden;
   color: var(--lavender);
+}
+
+.now__meter-empty {
+  clip-path: inset(0 0 0 var(--now-progress, 0%));
+}
+
+.now__meter-fill {
+  position: absolute;
+  inset: 0;
+  clip-path: inset(0 calc(100% - var(--now-progress, 0%)) 0 0);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .now--playing :is(.now__meter-empty, .now__meter-fill) {
+    transition: clip-path 0.25s linear;
+  }
 }
 
 .now__time { font-variant-numeric: tabular-nums; }

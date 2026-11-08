@@ -62,9 +62,8 @@
       const age = data.playing ? Math.max(0, Date.now() - origin) : 0;
       const duration = data.track.duration_ms;
       const position = Math.min(duration, data.progress_ms + age);
-      const filled = Math.round(position / duration * meterCells);
       const timestamp = clock(position) + " / " + clock(duration);
-      playback.meter.textContent = "▓".repeat(filled) + "░".repeat(meterCells - filled);
+      playback.meter.style.setProperty("--now-progress", (position / duration * 100) + "%");
       playback.meter.setAttribute("aria-valuenow", String(Math.round(position)));
       playback.meter.setAttribute("aria-valuetext", timestamp);
       playback.time.textContent = timestamp;
@@ -95,7 +94,9 @@
       mark.setAttribute("aria-hidden", "true");
       const trackRow = node("div", "now__track", "");
       trackRow.append(mark, title);
+      const trackLinkFocused = content.querySelector("a.now__title:focus");
       content.replaceChildren(trackRow);
+      if (trackLinkFocused && track.url) title.focus({ preventScroll: true });
 
       const duration = track.duration_ms;
       const hasProgress = Number.isFinite(data.progress_ms) && data.progress_ms >= 0 &&
@@ -106,6 +107,11 @@
         meter.setAttribute("role", "progressbar");
         meter.setAttribute("aria-label", "Playback progress");
         meter.setAttribute("aria-valuemax", String(duration));
+        const empty = node("span", "now__meter-empty", "░".repeat(meterCells));
+        const fill = node("span", "now__meter-fill", "▓".repeat(meterCells));
+        empty.setAttribute("aria-hidden", "true");
+        fill.setAttribute("aria-hidden", "true");
+        meter.append(empty, fill);
         const time = node("span", "now__time", "");
         time.setAttribute("aria-hidden", "true");
         controls.append(meter, time);
