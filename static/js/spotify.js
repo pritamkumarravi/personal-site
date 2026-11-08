@@ -2,27 +2,22 @@
   "use strict";
 
   /* ---- spotify now playing ----
-     Ported from saarthak314/site (design + behaviour preserved).
+     Adapted from saarthak314/site.
      The worker (see worker/) answers:
        { playing, progress_ms, played_at, fetched_at,
          track: { title, artists[], album, duration_ms, url, art } }
-     Playing → live meter + clock + equalizer; paused → ▷ and no meter;
-     nothing playing → the last track with "played Xm ago". The last answer
+     When nothing is playing, show the last track with "played Xm ago". The last answer
      is cached in localStorage so the card shows instantly with
      "spotify // syncing" until the fresh answer lands. Two consecutive
      failures show an unavailable state and retry after two minutes; polling
      pauses in background tabs and while the card is off-screen. */
   document.querySelectorAll("[data-now]").forEach((box) => {
     const endpoint = box.dataset.now;
-    const pre = box.querySelector(".now__pre");
+    const content = box.querySelector(".now__content");
     const label = box.querySelector(".now__state");
-    if (!endpoint || !pre || !label || !window.fetch) return;
-    const cells = 8;
-    const lower = (value) => String(value || "").toLowerCase();
-    const clock = (ms) => {
-      const seconds = Math.max(0, Math.floor(ms / 1000));
-      return Math.floor(seconds / 60) + ":" + String(seconds % 60).padStart(2, "0");
-    };
+    if (!endpoint || !content || !label || !window.fetch) return;
+    const lower = (value) => String(value || "").trim().toLowerCase();
+    const firstArtist = (track) => (track.artists || []).find((name) => typeof name === "string" && name.trim()) || "";
     const relativeTime = (iso, now = Date.now()) => {
       if (typeof iso !== "string" || !iso.trim()) return null;
       const playedAt = Date.parse(iso);
@@ -46,53 +41,21 @@
       return element;
     };
     let state = null;
-    let meter = null;
-    let timeLabel = null;
-    let ticker = 0;
     let poller = 0;
     let relativeTimer = 0;
     let failures = 0;
     let visible = false;
     const live = box.querySelector(".now__announcement");
     let loading = false;
-    let boundaryRefreshRequested = false;
-
-    const trackIdentity = (data) => {
-      const track = data && data.track;
-      return track ? [track.url || "", track.title || "", (track.artists || []).join(", ")].join("\u0000") : "";
-    };
-
-    const elapsed = () => {
-      if (!state || !state.data.playing || state.data.progress_ms == null) return 0;
-      const duration = state.data.track.duration_ms || 0;
-      const fetchedAt = Date.parse(state.data.fetched_at);
-      const origin = Number.isFinite(fetchedAt) ? fetchedAt : state.receivedAt;
-      return Math.min(duration, Math.max(0, state.data.progress_ms + Date.now() - origin));
-    };
-    const tick = () => {
-      if (!state || !meter) return;
-      const duration = state.data.track.duration_ms || 0;
-      const done = elapsed();
-      const filled = duration ? Math.round((done / duration) * cells) : 0;
-      meter.textContent = "▓".repeat(filled) + "░".repeat(cells - filled);
-      timeLabel.textContent = " " + clock(done) + " / " + clock(duration) + " ";
-      if (duration && done >= duration && !boundaryRefreshRequested &&
-          !loading && visible && !document.hidden) {
-        boundaryRefreshRequested = true;
-        load();
-      }
-    };
     const render = () => {
       const data = state && state.data;
-      meter = null;
       box.classList.toggle("now--playing", Boolean(data && data.playing));
       if (!data || !data.track) {
         label.textContent = "spotify // no recent track";
-        pre.textContent = "nothing to display";
+        content.textContent = "nothing to display";
         return;
       }
       const track = data.track;
-      pre.replaceChildren();
       const played = relativeTime(data.played_at);
       label.textContent = data.playing
         ? "spotify // playing"
@@ -100,37 +63,40 @@
           ? "spotify // played" + (played ? " " + played : "")
           : "spotify // paused";
       const title = node(track.url ? "a" : "span", "now__title", lower(track.title));
+      title.title = title.textContent;
       if (track.url) {
         title.href = track.url;
         title.rel = "noopener";
       }
-      const mark = node("span", "now__mark", data.playing ? "▶ " : "▷ ");
+      const mark = node("span", "now__mark", data.playing ? "▶" : "▷");
       mark.setAttribute("aria-hidden", "true");
-      pre.append(mark, title, "\n");
-      const artist = lower((track.artists || []).find((name) => String(name || "").trim()));
-      const album = lower(track.album);
-      const metadata = [artist, album].filter(Boolean).join(" // ");
-      if (metadata) pre.append("  ", node("span", "now__meta", metadata));
-      if (data.playing && data.progress_ms != null && track.duration_ms) {
-        meter = node("span", "now__meter", "");
-        timeLabel = node("span", "", "");
-        const eq = node("span", "now__eq", "");
-        meter.setAttribute("aria-hidden", "true");
-        eq.setAttribute("aria-hidden", "true");
-        "▂▅▃▇".split("").forEach((glyph, index) => {
-          const bar = node("span", "", glyph);
-          bar.style.setProperty("--i", index);
-          eq.append(bar);
-        });
-        pre.append("\n  ", meter, timeLabel, eq);
-        tick();
+      const trackRow = node("div", "now__track", "");
+      trackRow.append(mark, title);
+      content.replaceChildren(trackRow);
+
+      const artist = node("span", "now__artist", lower(firstArtist(track)));
+      const album = node("span", "now__album", lower(track.album));
+      if (artist.textContent || album.textContent) {
+        const meta = node("div", "now__meta", "");
+        if (artist.textContent) {
+          artist.title = artist.textContent;
+          meta.append(artist);
+        }
+        if (artist.textContent && album.textContent) {
+          const separator = node("span", "now__separator", "//");
+          separator.setAttribute("aria-hidden", "true");
+          meta.append(separator);
+        }
+        if (album.textContent) {
+          album.title = album.textContent;
+          meta.append(album);
+        }
+        content.append(meta);
       }
     };
     const stop = () => {
-      if (ticker) window.clearInterval(ticker);
       if (poller) window.clearTimeout(poller);
       if (relativeTimer) window.clearInterval(relativeTimer);
-      ticker = 0;
       poller = 0;
       relativeTimer = 0;
     };
@@ -142,13 +108,7 @@
       if (poller) window.clearTimeout(poller);
       poller = 0;
       if (!visible || document.hidden) return;
-      const playing = Boolean(state && state.data.playing);
       poller = window.setTimeout(load, pollDelay());
-      if (playing && !ticker) ticker = window.setInterval(tick, 1000);
-      if (!playing && ticker) {
-        window.clearInterval(ticker);
-        ticker = 0;
-      }
       if (state && state.data.track && state.data.played_at) {
         if (!relativeTimer) relativeTimer = window.setInterval(updatePlayedLabel, 60000);
       } else if (relativeTimer) {
@@ -163,7 +123,7 @@
     };
     const announce = (data) => {
       const track = data.track;
-      const identity = track ? [track.title, (track.artists || []).join(", ")].join(" — ") : "";
+      const identity = track ? [track.title, firstArtist(track)].filter(Boolean).join(" — ") : "";
       const mode = data.playing ? "playing" : data.played_at ? "recently played" : "paused";
       const message = identity ? identity + ", " + mode : "No recent Spotify track";
       if (live.textContent !== message) live.textContent = message;
@@ -187,17 +147,6 @@
         const response = await fetch(endpoint, { mode: "cors", signal: controller.signal });
         if (!response.ok) throw new Error(String(response.status));
         const data = await response.json();
-        const previous = state && state.data;
-        if (
-          previous &&
-          (trackIdentity(previous) !== trackIdentity(data) ||
-            Boolean(previous.playing) !== Boolean(data.playing) ||
-            (Number.isFinite(data.progress_ms) &&
-              Number.isFinite(previous.progress_ms) &&
-              data.progress_ms < previous.progress_ms - 1000))
-        ) {
-          boundaryRefreshRequested = false;
-        }
         announce(data);
         state = { data, receivedAt: Date.now() };
         failures = 0;
@@ -207,11 +156,9 @@
         failures += 1;
         if (failures >= 2) {
           state = null;
-          meter = null;
-          boundaryRefreshRequested = false;
           box.classList.remove("now--playing");
           label.textContent = "spotify // unavailable";
-          pre.textContent = "Playback updates will retry shortly.";
+          content.textContent = "Playback updates will retry shortly.";
           if (failures === 2) live.textContent = "Spotify is unavailable";
         }
       } finally {
@@ -232,7 +179,7 @@
     try {
       const stored = JSON.parse(window.localStorage.getItem(storageKey) || "null");
       if (stored && stored.track && !state) {
-        state = { data: { ...stored, playing: false, progress_ms: null }, receivedAt: Date.now() };
+        state = { data: { ...stored, playing: false }, receivedAt: Date.now() };
         render();
         label.textContent = "spotify // syncing";
         state = null;

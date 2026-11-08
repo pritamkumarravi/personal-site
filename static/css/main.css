@@ -319,7 +319,7 @@ body::after {
   grid-area: spotify;
   justify-self: center;
   margin-top: 0;
-  width: min(100%, 25rem);
+  width: min(100%, 16rem);
 }
 
 /* hero artwork — genuine ASCII rendered into the page at build time
@@ -424,8 +424,7 @@ body::after {
   white-space: nowrap;
 }
 
-/* ---- spotify now playing (ported from saarthak314/site — design preserved,
-   colours mapped to this theme: lavender marks/meter, phosphor equalizer) ---- */
+/* ---- spotify now playing ---- */
 
 .now {
   max-width: none;
@@ -459,7 +458,7 @@ body::after {
   color: var(--lavender);
 }
 
-.now__pre {
+.now__content {
   color: var(--secondary);
   font-family: var(--code);
   font-size: 12.5px;
@@ -468,7 +467,6 @@ body::after {
   line-height: 1.7;
   margin: 0;
   overflow-wrap: anywhere;
-  white-space: pre-wrap;
 }
 
 .now__announcement {
@@ -483,8 +481,13 @@ body::after {
   border: 0;
 }
 
+.now__track {
+  display: flex;
+}
+
 .now__mark {
   color: var(--lavender);
+  flex: 0 0 2ch;
 }
 
 .now__title {
@@ -498,33 +501,28 @@ body::after {
 
 .now__meta {
   color: var(--muted);
+  display: flex;
+  gap: 1ch;
+  padding-inline-start: 2ch;
 }
 
-.now__meter {
-  color: var(--lavender);
-  vertical-align: middle;
+.now__title,
+.now__artist,
+.now__album {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.now__eq {
-  color: var(--phosphor);
-  display: inline-block;
-  vertical-align: middle;
+.now__artist:not(:only-child) {
+  flex: none;
+  max-width: 65%;
 }
 
-.now__eq span {
-  animation: now-eq calc(0.9s + var(--i, 0) * 0.17s) ease-in-out calc(var(--i, 0) * -0.3s) infinite alternate;
-  display: inline-block;
-  transform-origin: bottom;
-}
-
-@keyframes now-eq {
-  from {
-    transform: scaleY(0.3);
-  }
-
-  to {
-    transform: scaleY(1);
-  }
+.now__separator {
+  flex: none;
+  white-space: nowrap;
 }
 
 /* ---- page heads ---- */
@@ -907,7 +905,6 @@ body::after {
   .spotify {
     order: 5;
     align-self: center;
-    width: 100%;
     margin-top: 1.75rem;
   }
 }
@@ -942,5 +939,4 @@ body::after {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
-  .now__eq span { animation: none; }
 }

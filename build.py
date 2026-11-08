@@ -62,6 +62,7 @@ class Site:
         self.include_drafts = include_drafts
         self.out = out
         self.stylesheet_url = "/css/main.css"
+        self.spotify_script_url = "/js/spotify.js"
         self.env = Environment(
             loader=FileSystemLoader(ROOT / "templates"),
             autoescape=select_autoescape(["html", "xml"]),
@@ -115,6 +116,7 @@ class Site:
             page=page,
             now=date.today(),
             stylesheet_url=self.stylesheet_url,
+            spotify_script_url=self.spotify_script_url,
             **ctx,
         )
         out_path.parent.mkdir(parents=True, exist_ok=True)
@@ -124,12 +126,8 @@ class Site:
         if self.out.exists():
             shutil.rmtree(self.out)
         shutil.copytree(ROOT / "static", self.out)
-        stylesheet = self.out / "css" / "main.css"
-        css = stylesheet.read_bytes()
-        fingerprint = hashlib.sha256(css).hexdigest()[:12]
-        versioned_stylesheet = stylesheet.with_name(f"main.{fingerprint}.css")
-        versioned_stylesheet.write_bytes(css)
-        self.stylesheet_url = f"/css/{versioned_stylesheet.name}"
+        self.stylesheet_url = versioned_asset(self.out, "css/main.css")
+        self.spotify_script_url = versioned_asset(self.out, "js/spotify.js")
 
         featured = [p for p in self.projects if p.meta.get("featured")]
         by_year: dict[int, list[Post]] = {}
@@ -192,6 +190,15 @@ class Site:
 
 
 # -- helpers -------------------------------------------------------------------
+
+
+def versioned_asset(out: Path, relative_path: str) -> str:
+    asset = out / relative_path
+    content = asset.read_bytes()
+    fingerprint = hashlib.sha256(content).hexdigest()[:12]
+    versioned = asset.with_stem(f"{asset.stem}.{fingerprint}")
+    versioned.write_bytes(content)
+    return f"/{versioned.relative_to(out).as_posix()}"
 
 
 def page(id_: str, title: str, description: str | None = None) -> dict:

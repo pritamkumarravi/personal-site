@@ -37,7 +37,7 @@
   <link rel="stylesheet" href="/css/pygments.css">
   {% endif %}
   {% if page.id == "home" and site.spotify.enabled and site.spotify.worker %}
-  <script src="/js/spotify.js" defer></script>
+  <script src="{{ spotify_script_url }}" defer></script>
   {% endif %}
   {% if page.id == "article" or has_code %}
   <script src="/js/main.js" defer></script>
