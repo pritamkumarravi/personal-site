@@ -8,6 +8,10 @@ repo: https://github.com/pritamkumarravi/wan2.1-bench
 status: active
 priority: 1
 featured: true
+homepage_result:
+  metric: 58.3 s mean latency
+  context: RTX 5090 · 832×480 · 81 frames · 20 steps · 5 measured runs
+  source: https://github.com/pritamkumarravi/wan2.1-bench/blob/main/benchmarks/results/20260928_055926/summary.json
 ---
 
 ## overview

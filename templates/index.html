@@ -3,6 +3,22 @@
 {% block content %}
 
 <section class="hero shell">
+  <div class="hero-intro">
+    <h1 class="hero-hello">{{ site.hero.hello | safe }}</h1>
+    <div class="hero-actions">
+      <a href="#selected-projects">See projects <span aria-hidden="true">↓</span></a>
+      <a href="/writing/">Read writing <span aria-hidden="true">→</span></a>
+    </div>
+    <p class="hero-copy">{{ site.hero.machinery | safe }}</p>
+    <p class="hero-copy">{{ site.hero.enjoy | safe }}</p>
+    <ul class="social-links" aria-label="elsewhere">
+      <li><a href="{{ site.social.github }}">GitHub</a></li>
+      <li><a href="{{ site.social.x }}">X</a></li>
+      <li><a href="{{ site.social.linkedin }}">LinkedIn</a></li>
+      <li><a href="mailto:{{ site.email }}">Email</a></li>
+    </ul>
+  </div>
+
   <figure class="hero-art" role="img"
           aria-label="ASCII portrait of Shanks of One Piece: hair over one eye, three scars, hand gripping his sword.">
     {% include "partials/shanks-ascii.html" %}
@@ -10,33 +26,31 @@
     <figcaption class="art-meta" aria-hidden="true">// shanks.asc · utf-8</figcaption>
   </figure>
 
-  <div class="hero-intro">
-    <ul class="social-links" aria-label="elsewhere">
-      <li><a href="{{ site.social.github }}">GitHub</a></li>
-      <li><a href="{{ site.social.x }}">X</a></li>
-      <li><a href="{{ site.social.linkedin }}">LinkedIn</a></li>
-      <li><a href="mailto:{{ site.email }}">Email</a></li>
-    </ul>
-    <h1 class="hero-hello">{{ site.hero.hello | safe }}</h1>
-    <p class="hero-copy">{{ site.hero.machinery | safe }}</p>
-    <p class="hero-copy">{{ site.hero.enjoy | safe }}</p>
-  </div>
-
   {% include "partials/spotify.html" %}
 </section>
 
 <section class="section shell">
   <div class="section-row">
-    <h2 class="section-title">Selected Projects</h2>
+    <h2 class="section-title" id="selected-projects" tabindex="-1">Selected Projects</h2>
     <a class="view-all" href="/projects/" aria-label="View all projects">View all →</a>
   </div>
   <ul class="entry-list">
     {% for p in featured %}
-    <li>
+    {% set result = p.meta.get("homepage_result") %}
+    <li{% if result %} class="entry-featured"{% endif %}>
       <a class="entry-link" href="{{ p.url }}">
         <span class="entry-title">{{ p.title }}</span>
         <span class="entry-desc">{{ p.tagline }}</span>
+        {% if result %}
+        <span class="entry-result">
+          <strong>{{ result.metric }}</strong>
+          <span>{{ result.context }}</span>
+        </span>
+        {% endif %}
       </a>
+      {% if result %}
+      <a class="entry-result-source" href="{{ result.source }}">Benchmark data <span aria-hidden="true">↗</span></a>
+      {% endif %}
     </li>
     {% endfor %}
   </ul>

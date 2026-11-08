@@ -38,6 +38,14 @@
     pre.before(btn);
   });
 
+  var toc = document.querySelector("details.toc");
+  if (toc) {
+    var desktopContents = window.matchMedia("(min-width: 66.25rem)");
+    var syncContents = function () { toc.open = desktopContents.matches; };
+    syncContents();
+    desktopContents.addEventListener("change", syncContents);
+  }
+
   /* ---- reading progress (article pages) ---- */
   var bar = document.getElementById("progress-bar");
   if (bar) {
@@ -59,7 +67,6 @@
   }
 
   /* ---- table-of-contents scrollspy ---- */
-  var toc = document.querySelector(".toc");
   if (toc && "IntersectionObserver" in window) {
     var links = Array.prototype.slice.call(toc.querySelectorAll("a[href^='#']"));
     var byId = {};

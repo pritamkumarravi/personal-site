@@ -262,7 +262,6 @@ body::after {
 }
 /* level 1 — the greeting: the strongest text element on the page */
 .hero-hello {
-  order: 1;
   margin: 0;
   color: var(--primary);
   font-size: clamp(1.0625rem, 1rem + 0.55vw, 1.1875rem);   /* 17→19px over the 15px body */
@@ -272,11 +271,30 @@ body::after {
 .hero-hello::before { content: "> "; color: var(--lavender); }
 .hero-hello strong { font-weight: 600; }
 
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 1.25rem;
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.hero-actions a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5ch;
+  min-height: 44px;
+  color: var(--lavender);
+  text-decoration: underline;
+  text-underline-offset: 0.28em;
+}
+
+.hero-actions a:hover { color: var(--primary); }
+
 /* level 2 — supporting paragraphs: receded so the bold phrases carry the eye.
    Base grey lifted a touch above --secondary for screen comfort (the token
    stays untouched everywhere else); strong phrases keep full --primary. */
 .hero-copy {
-  order: 2;
   margin: 1.625rem 0 0;
   max-width: 32rem;
   color: var(--secondary);
@@ -284,12 +302,12 @@ body::after {
   font-size: 1rem;        /* 16px supporting text, under the 19px greeting */
   line-height: 1.8;
 }
+.hero-actions + .hero-copy { margin-top: 0.75rem; }
 .hero-copy + .hero-copy { margin-top: 1.625rem; }
 .hero-copy strong { color: var(--primary); font-weight: 600; }
 
 /* level 3 — social links */
 .social-links {
-  order: 3;
   margin: 2rem 0 0;
   padding: 0;
   list-style: none;
@@ -376,6 +394,8 @@ body::after {
   line-height: 1.2;
 }
 
+#selected-projects { scroll-margin-top: 7rem; }
+
 .view-all {
   font-size: 0.8125rem;
   color: var(--secondary);
@@ -423,6 +443,38 @@ body::after {
   color: var(--muted);
   white-space: nowrap;
 }
+
+.entry-featured .entry-link {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: "title" "desc" "result";
+  padding-bottom: 0.6rem;
+}
+
+.entry-featured .entry-title { font-size: 1.75rem; }
+
+.entry-result {
+  grid-area: result;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0.75rem;
+  margin-top: 0.45rem;
+  color: var(--secondary);
+  font-size: 0.8125rem;
+}
+
+.entry-result strong { color: var(--lavender); }
+
+.entry-result-source {
+  display: inline-block;
+  margin-bottom: 1.05rem;
+  color: var(--secondary);
+  font-size: 0.8125rem;
+  text-decoration: underline;
+  text-underline-offset: 0.22em;
+}
+
+.entry-result-source:hover { color: var(--lavender); }
 
 /* ---- spotify now playing ---- */
 
@@ -941,26 +993,17 @@ body::after {
     gap: 0;
     padding-block: 1.25rem 3rem;
   }
-  .hero-intro { display: contents; }
   .hero-art {
-    order: 1;
-    margin: 0 auto;
+    margin: 1.5rem auto 0;
     min-width: 0;
   }
   .social-links {
-    order: 2;
-    justify-content: center;
     gap: 0.4rem clamp(1rem, 4vw, 1.5rem);
-    margin: 0.9rem 0 1.25rem;
+    margin: 1.25rem 0 0;
   }
-  .hero-hello { order: 3; }
-  .hero-copy {
-    order: 4;
-    margin-top: 1rem;
-  }
+  .hero-copy { margin-top: 1rem; }
   .hero-copy + .hero-copy { margin-top: 1.625rem; }
   .spotify {
-    order: 5;
     align-self: center;
     margin-top: 1.75rem;
   }

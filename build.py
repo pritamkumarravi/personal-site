@@ -63,6 +63,7 @@ class Site:
         self.out = out
         self.stylesheet_url = "/css/main.css"
         self.spotify_script_url = "/js/spotify.js"
+        self.main_script_url = "/js/main.js"
         self.env = Environment(
             loader=FileSystemLoader(ROOT / "templates"),
             autoescape=select_autoescape(["html", "xml"]),
@@ -117,6 +118,7 @@ class Site:
             now=date.today(),
             stylesheet_url=self.stylesheet_url,
             spotify_script_url=self.spotify_script_url,
+            main_script_url=self.main_script_url,
             **ctx,
         )
         out_path.parent.mkdir(parents=True, exist_ok=True)
@@ -128,6 +130,7 @@ class Site:
         shutil.copytree(ROOT / "static", self.out)
         self.stylesheet_url = versioned_asset(self.out, "css/main.css")
         self.spotify_script_url = versioned_asset(self.out, "js/spotify.js")
+        self.main_script_url = versioned_asset(self.out, "js/main.js")
 
         featured = [p for p in self.projects if p.meta.get("featured")]
         by_year: dict[int, list[Post]] = {}
