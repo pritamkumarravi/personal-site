@@ -405,8 +405,8 @@ def main() -> None:
     ap.add_argument("--mobile-cols", type=int, default=56, help="mobile character columns")
     ap.add_argument("--crop", type=parse_crop, default=(0.0, 0.0, 1.0, 0.90),
                     help="desktop crop x0,y0,x1,y1 (fractions of the source)")
-    ap.add_argument("--mobile-crop", type=parse_crop, default=(0.37, 0.22, 1.0, 0.61),
-                    help="mobile crop centered on the eye and scars")
+    ap.add_argument("--mobile-crop", type=parse_crop, default=(0.28, 0.04, 1.0, 0.70),
+                    help="mobile crop — recomposed, not squeezed")
     ap.add_argument("--blur", type=float, default=0.34,
                     help="pre-resize gaussian radius scale (x width/cols); 0 disables. "
                          "0.34 ≈ half the source's 6-7px ink-hatch period, so the hatch "
