@@ -271,26 +271,6 @@ body::after {
 .hero-hello::before { content: "> "; color: var(--lavender); }
 .hero-hello strong { font-weight: 600; }
 
-.hero-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0 1.25rem;
-  margin-top: 0.5rem;
-  font-size: 0.875rem;
-}
-
-.hero-actions a {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5ch;
-  min-height: 44px;
-  color: var(--lavender);
-  text-decoration: underline;
-  text-underline-offset: 0.28em;
-}
-
-.hero-actions a:hover { color: var(--primary); }
-
 /* level 2 — supporting paragraphs: receded so the bold phrases carry the eye.
    Base grey lifted a touch above --secondary for screen comfort (the token
    stays untouched everywhere else); strong phrases keep full --primary. */
@@ -302,7 +282,6 @@ body::after {
   font-size: 1rem;        /* 16px supporting text, under the 19px greeting */
   line-height: 1.8;
 }
-.hero-actions + .hero-copy { margin-top: 0.75rem; }
 .hero-copy + .hero-copy { margin-top: 1.625rem; }
 .hero-copy strong { color: var(--primary); font-weight: 600; }
 
