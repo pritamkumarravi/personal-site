@@ -18,6 +18,10 @@
     if (!endpoint || !content || !label || !window.fetch) return;
     const lower = (value) => String(value || "").trim().toLowerCase();
     const firstArtist = (track) => (track.artists || []).find((name) => typeof name === "string" && name.trim()) || "";
+    const clock = (ms) => {
+      const seconds = Math.floor(ms / 1000);
+      return Math.floor(seconds / 60) + ":" + String(seconds % 60).padStart(2, "0");
+    };
     const relativeTime = (iso, now = Date.now()) => {
       if (typeof iso !== "string" || !iso.trim()) return null;
       const playedAt = Date.parse(iso);
@@ -41,14 +45,29 @@
       return element;
     };
     let state = null;
+    let playback = null;
+    let ticker = 0;
     let poller = 0;
     let relativeTimer = 0;
     let failures = 0;
     let visible = false;
     const live = box.querySelector(".now__announcement");
     let loading = false;
+    const updateProgress = () => {
+      if (!state || !playback) return;
+      const { data, receivedAt } = state;
+      const fetchedAt = Date.parse(data.fetched_at);
+      const origin = Number.isFinite(fetchedAt) ? fetchedAt : receivedAt;
+      const age = data.playing ? Math.max(0, Date.now() - origin) : 0;
+      const position = Math.min(playback.meter.max, data.progress_ms + age);
+      const timestamp = clock(position) + " / " + clock(playback.meter.max);
+      playback.meter.value = position;
+      playback.meter.setAttribute("aria-valuetext", timestamp);
+      playback.time.textContent = timestamp;
+    };
     const render = () => {
       const data = state && state.data;
+      playback = null;
       box.classList.toggle("now--playing", Boolean(data && data.playing));
       if (!data || !data.track) {
         label.textContent = "spotify // no recent track";
@@ -72,7 +91,22 @@
       mark.setAttribute("aria-hidden", "true");
       const trackRow = node("div", "now__track", "");
       trackRow.append(mark, title);
-      if (data.playing) {
+      content.replaceChildren(trackRow);
+
+      const duration = track.duration_ms;
+      const hasProgress = Number.isFinite(data.progress_ms) && data.progress_ms >= 0 &&
+        Number.isFinite(duration) && duration > 0;
+      const controls = node("div", "now__playback", "");
+      if (hasProgress) {
+        const meter = node("progress", "now__meter", "");
+        meter.max = duration;
+        meter.setAttribute("aria-label", "Playback progress");
+        const time = node("span", "now__time", "");
+        time.setAttribute("aria-hidden", "true");
+        controls.append(meter, time);
+        playback = { meter, time };
+      }
+      if (data.playing || hasProgress) {
         const equalizer = node("span", "now__eq", "");
         equalizer.setAttribute("aria-hidden", "true");
         [..."▂▅▃▇"].forEach((glyph, index) => {
@@ -80,9 +114,8 @@
           bar.style.setProperty("--i", index);
           equalizer.append(bar);
         });
-        trackRow.append(equalizer);
+        (hasProgress ? controls : trackRow).append(equalizer);
       }
-      content.replaceChildren(trackRow);
 
       const artist = node("span", "now__artist", lower(firstArtist(track)));
       const album = node("span", "now__album", lower(track.album));
@@ -103,12 +136,18 @@
         }
         content.append(meta);
       }
+      if (hasProgress) {
+        content.append(controls);
+        updateProgress();
+      }
     };
     const stop = () => {
+      window.clearInterval(ticker);
       if (poller) window.clearTimeout(poller);
       if (relativeTimer) window.clearInterval(relativeTimer);
       poller = 0;
       relativeTimer = 0;
+      ticker = 0;
     };
     const pollDelay = () => {
       if (failures === 1) return 5000;
@@ -119,6 +158,12 @@
       poller = 0;
       if (!visible || document.hidden) return;
       poller = window.setTimeout(load, pollDelay());
+      window.clearInterval(ticker);
+      ticker = 0;
+      if (playback && state?.data.playing) {
+        updateProgress();
+        ticker = window.setInterval(updateProgress, 1000);
+      }
       if (state && state.data.track && state.data.played_at) {
         if (!relativeTimer) relativeTimer = window.setInterval(updatePlayedLabel, 60000);
       } else if (relativeTimer) {
@@ -166,6 +211,7 @@
         failures += 1;
         if (failures >= 2) {
           state = null;
+          playback = null;
           box.classList.remove("now--playing");
           label.textContent = "spotify // unavailable";
           content.textContent = "Playback updates will retry shortly.";
